@@ -47,7 +47,7 @@ class Book:
             book_id (str):      Mã sách duy nhất.
             title (str):        Tên sách.
             author (str):       Tên tác giả.
-            genre (str):        Thể loại sách (mặc định: "").
+            genre (str):        Thể loại sách.
             quantity (int):     Số lượng bản sách (mặc định: 1).
             status (str):       Trạng thái sách (mặc định: "available").
             borrow_count (int): Số lần đã được mượn (mặc định: 0).
@@ -55,7 +55,7 @@ class Book:
         self.book_id = book_id
         self.title = title
         self.author = author
-        self.genre = genre          # ← THÊM MỚI
+        self.genre = genre
         self.quantity = quantity
         self.status = status
         self.borrow_count = borrow_count
@@ -71,7 +71,7 @@ class Book:
             "book_id": self.book_id,
             "title": self.title,
             "author": self.author,
-            "genre": self.genre,    # ← THÊM MỚI
+            "genre": self.genre,
             "quantity": self.quantity,
             "status": self.status,
             "borrow_count": self.borrow_count,
@@ -92,7 +92,7 @@ class Book:
             book_id=data["book_id"],
             title=data["title"],
             author=data["author"],
-            genre=data.get("genre", ""),        # ← THÊM MỚI
+            genre=data.get("genre", ""),
             quantity=int(data.get("quantity", 1)),
             status=data.get("status", "available"),
             borrow_count=int(data.get("borrow_count", 0)),
