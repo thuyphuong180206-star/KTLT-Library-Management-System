@@ -106,8 +106,73 @@ def admin_menu(hash_map_obj, dll_sys, user_list, current_user: User):
             # books = hash_map_obj.get_all_books()
             # display_book_table_interface(books)
             pause()
+       def manage_loans_menu(hash_map_obj, dll_sys, user_list):
+    """
+    Menu cấp 2: Quản lý nghiệp vụ mượn trả sách (Module của Admin)
+    """
+    while True:
+        print_header("MODULE 2: NGHIỆP VỤ MƯỢN TRẢ & GIAO DỊCH")
+        print("  1. Tra cứu nhanh trạng thái sách (Còn/Hết)")
+        print("  2. Ghi nhận CHO MƯỢN sách (Tạo phiếu)")
+        print("  3. Ghi nhận TRẢ SÁCH & Thu tiền phạt")
+        print("  4. Theo dõi Sách đang mượn & Cảnh báo Quá hạn")
+        print("  0. Quay lại Menu Quản trị viên")
+        print("-" * 80)
+        
+        choice = input("👉 Chọn tác vụ (0-4): ").strip()
+        
+        if choice == '1':
+            print("\n🔍 TRA CỨU TRẠNG THÁI SÁCH")
+            keyword = input("Nhập tên sách hoặc tác giả cần tìm: ").strip()
+            if keyword:
+                print(f"\n[Giao diện] Đang gửi từ khóa '{keyword}' xuống tầng Logic để tìm trong Bảng băm...")
+                # Mở khóa khi ráp code:
+                # results = search.search_books_by_keyword(hash_map_obj, keyword)
+                # display_book_table_interface(results)
+            pause()
+            
         elif choice == '2':
-            print("\n[Đang gọi Module Mượn/Trả...]")
+            print("\n📝 TẠO PHIẾU MƯỢN SÁCH")
+            user_id = input("Nhập Mã độc giả (VD: U00001): ").strip()
+            book_id = input("Nhập Mã sách (VD: B001): ").strip()
+            
+            if not user_id or not book_id:
+                print("\n[!] Lỗi: Mã độc giả và Mã sách không được để trống.")
+            else:
+                print(f"\n[Giao diện] Đang chuyển yêu cầu mượn sách ({book_id}) của độc giả ({user_id}) xuống tầng Logic...")
+                # Mở khóa khi ráp code:
+                # success, msg = loan_manager.process_borrow(hash_map_obj, dll_sys, user_list, user_id, book_id)
+                # print(f"\nThông báo từ hệ thống: {msg}")
+            pause()
+            
+        elif choice == '3':
+            print("\n✅ GHI NHẬN TRẢ SÁCH")
+            loan_id = input("Nhập Mã phiếu mượn (VD: L001): ").strip()
+            
+            if not loan_id:
+                print("\n[!] Lỗi: Mã phiếu mượn không được để trống.")
+            else:
+                print(f"\n[Giao diện] Đang chuyển yêu cầu trả sách phiếu ({loan_id}) xuống tầng Logic...")
+                # Mở khóa khi ráp code:
+                # success, fee, msg = loan_manager.process_return(hash_map_obj, dll_sys, loan_id)
+                # print(f"\nThông báo: {msg}")
+                # if fee > 0:
+                #     print(f"⚠️ CẢNH BÁO: Độc giả bị phạt {fee} VNĐ do nộp trễ hạn!")
+            pause()
+            
+        elif choice == '4':
+            print("\n⏰ DANH SÁCH QUÁ HẠN & ĐANG MƯỢN")
+            print("[Giao diện] Đang quét toàn bộ Danh sách liên kết kép (DLL) để lọc phiếu...")
+            # Mở khóa khi ráp code:
+            # active_loans = loan_manager.get_active_and_overdue_loans(dll_sys)
+            # Viết thêm hàm in bảng ASCII cho Loan ở đây
+            pause()
+            
+        elif choice == '0':
+            break
+        else:
+            print("\n[!] Lựa chọn không hợp lệ.")
+            pause()
             pause()
         elif choice == '3':
             account_manager.show_change_password_form(current_user)
