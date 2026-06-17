@@ -11,7 +11,7 @@ Các phương thức:
     - is_empty()         : Kiểm tra hàng đợi rỗng, O(1)
     - size (property)   : Số lượng yêu cầu đang chờ, O(1)
     - to_list()          : Xuất toàn bộ hàng đợi ra CustomList theo thứ tự FIFO, O(n)
-Import bởi: (chưa có module nào sử dụng — đây là tính năng mới, chưa được ráp vào logic/interface)
+Import bởi: storage.data_processor, logic.loan_manager
 """
 from structure.custom_list import CustomList
 

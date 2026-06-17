@@ -16,7 +16,6 @@ Các hàm:
 7. Sách còn trong kho không (quantity > 0)? 
        Nếu hợp lệ: tạo Loan (due_date tự tính), thêm vào DLL, giảm quantity đi 1, tăng borrow_count lên 1. 
         Trả về: (bool, str)
-
     - process_return(hash_map, dll, user_array, user_id, book_id)
         Xử lý trả sách.
         Tìm phiếu gần nhất có status="borrowing" hoặc status="overdue" khớp user_id + book_id
@@ -24,12 +23,19 @@ Các hàm:
         Cập nhật phiếu: return_date, status="returned", overdue_fee.
         Tăng quantity sách lên 1. 
         Trả về: (bool, str, float) — (thành công, thông báo, tiền phạt)
-
     - calculate_overdue_fee(loan, user)
         Tính tiền phạt tạm tính cho phiếu chưa trả.
         Dùng cho tính năng xem phí real-time của user.
         Trả về: float (VNĐ)
     - is_book_on_loan(dll, book_id)
+    - add_to_waiting_queue(waiting_queue, user_id, book_id)
+        Thêm yêu cầu chờ mượn vào cuối WaitingQueue khi sách hết kho.
+        Kiểm tra user chưa có trong hàng chờ của book_id này trước khi thêm.
+        Trả về: (bool, str) — (thành công, thông báo)
+    - check_waiting_queue(waiting_queue, book_id)
+        Kiểm tra có ai đang chờ mượn cuốn sách này không.
+        Gọi sau process_return() để thông báo cho admin.
+        Trả về: str | None — user_id đầu hàng chờ, hoặc None nếu không có ai
 Kiểm tra sách có đang được mượn không bằng cách duyệt DLL.
 Tìm phiếu có book_id khớp và status="borrowing" hoặc "overdue".
 Dùng cho chức năng xóa sách ở interface.menu.

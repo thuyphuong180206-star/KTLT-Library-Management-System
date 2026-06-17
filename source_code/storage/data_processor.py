@@ -10,10 +10,11 @@ Ràng buộc:
     - Nếu books.csv hoặc loans.csv không tồn tại: tự tạo file mới chỉ có header.
     - Nếu users.csv không tồn tại: tự tạo file mới với header và ghi sẵn tài khoản admin mặc định (user_id="admin", password="admin123", role="admin", reader_type="") để đảm bảo hệ thống luôn đăng nhập được. 
     - Nếu dòng dữ liệu lỗi: ghi vào system_error.log, bỏ qua dòng đó và tiếp tục.
+    - Nếu waiting_requests.csv không tồn tại: tự tạo file mới chỉ có header.
 Các hàm:
-    - load_system_data(books_path, users_path, loans_path)
-        → tuple(BookHashMap, TransactionList, UserArray)
-    - save_system_data(hash_map, dll, user_array, books_path, users_path, loans_path)
+    - load_system_data(books_path, users_path, loans_path, waiting_path)
+    → tuple(BookHashMap, TransactionList, UserArray, WaitingQueue)
+    - save_system_data(hash_map, dll, user_array, waiting_queue, books_path, users_path, loans_path, waiting_path)
         → None
 Import: objects.books.Book, objects.users.User, objects.loans.Loan,
         structure.hash_map.BookHashMap, structure.doubly_linked_list.TransactionList,
