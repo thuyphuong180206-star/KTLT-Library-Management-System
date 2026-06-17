@@ -7,13 +7,15 @@ Thuộc tính:
     - password (str)        : Mật khẩu tài khoản
     - role (str)            : Vai trò hệ thống ("admin" | "user")
     - reader_type (str)     : Loại bạn đọc ("student" | "lecturer" | "" nếu là admin)
-    - borrow_limit (int)    : Hạn mức mượn tối đa (SV=3, GV=5, admin=0)
-    - borrow_duration (int) : Số ngày được mượn (SV=14, GV=30, admin=0)
-Phương thức: to_dict(), from_dict(), is_admin()
-Import bởi: storage.data_processor, interface.account_manager, interface.menu
+    - borrow_limit (int)    : Hạn mức mượn tối đa (SV=3, GV=5, admin=0) — tự tính từ reader_type
+    - borrow_duration (int) : Số ngày được mượn (SV=14, GV=21, admin=0) — tự tính từ reader_type
+Hằng số nghiệp vụ:
+    BORROW_LIMITS    = {"student": 3, "lecturer": 5, "": 0}
+    BORROW_DURATIONS = {"student": 14, "lecturer": 21, "": 0}
+Phương thức: to_dict(), from_dict(), is_admin(), __repr__, __eq__
+Import bởi: storage.data_processor, interface.account_manager,
+            interface.menu, logic.loan_manager
 """
-
-
 class User:
     """
     Thực thể đại diện cho một tài khoản người dùng trong hệ thống thư viện.
