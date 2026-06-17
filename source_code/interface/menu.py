@@ -41,15 +41,17 @@ Import: logic.search, logic.sort, logic.loan_manager, logic.report,
 Import bởi: main
 """
 import os
-from interface import account_manager, validator
-# Import hờ các thư viện để chống lỗi, khi các bạn làm logic xong thì gỡ comment
-# from storage import data_processor
-# from logic import search, sort, loan_manager
 from objects.books import Book
 from objects.users import User
+from objects.loans import Loan
+
+# Import các package từ các tầng khác
+from interface import account_manager, validator
+from storage import data_processor
+from logic import search, sort, loan_manager, report
 
 # ==========================================
-# 1. CÁC HÀM TIỆN ÍCH GIAO DIỆN
+# 1. CÁC HÀM TIỆN ÍCH GIAO DIỆN & LƯU DỮ LIỆU
 # ==========================================
 def clear_screen():
     os.system('cls' if os.name == 'nt' else 'clear')
@@ -63,288 +65,339 @@ def print_header(title: str):
 def pause():
     input("\n👉 Nhấn Enter để tiếp tục...")
 
+def _trigger_save(hash_map, dll, user_array):
+    """Lưu dữ liệu ngầm sau mỗi thao tác thay đổi trạng thái hệ thống."""
+    base_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+    data_dir = os.path.join(base_dir, "data")
+    books_path = os.path.join(data_dir, "books.csv")
+    users_path = os.path.join(data_dir, "users.csv")
+    loans_path = os.path.join(data_dir, "loans.csv")
+    try:
+        data_processor.save_system_data(hash_map, dll, user_array, books_path, users_path, loans_path)
+    except Exception as e:
+        print(f"\n[!] Lỗi khi tự động lưu dữ liệu: {e}")
+
 # ==========================================
-# 2. HÀM VẼ BẢNG ASCII ĐỘNG (DYNAMIC ASCII TABLE)
+# 2. CÁC HÀM IN BẢNG ASCII PHÂN TRANG (10 DÒNG/TRANG)
 # ==========================================
-def display_book_table_interface(books: list[Book]) -> None:
+def display_books_paginated(books: list[Book]):
     if not books:
-        print("\n[!] Không có dữ liệu sách để hiển thị.")
+        print("\n[!] Không có dữ liệu sách.")
         return
 
-    w_id = max(8, max((len(b.book_id) for b in books), default=8))
-    w_title = min(35, max(10, max((len(b.title) for b in books), default=10)))
-    w_author = min(20, max(9, max((len(b.author) for b in books), default=9)))
-    w_genre = min(15, max(9, max((len(b.genre) for b in books), default=9)))
-    w_qty = 5     
-    w_borrow = 10 
+    PAGE_SIZE = 10
+    total = len(books)
+    w_id, w_title, w_author, w_genre, w_qty = 8, 30, 20, 15, 5
 
-    separator = f"+{'-'*(w_id+2)}+{'-'*(w_title+2)}+{'-'*(w_author+2)}+{'-'*(w_genre+2)}+{'-'*(w_qty+2)}+{'-'*(w_borrow+2)}+"
+    separator = f"+{'-'*(w_id+2)}+{'-'*(w_title+2)}+{'-'*(w_author+2)}+{'-'*(w_genre+2)}+{'-'*(w_qty+2)}+"
 
-    print(separator)
-    print(f"| {'Mã Sách'.ljust(w_id)} | {'Tên Sách'.ljust(w_title)} | {'Tác Giả'.ljust(w_author)} | {'Thể Loại'.ljust(w_genre)} | {'Kho'.rjust(w_qty)} | {'Lượt Mượn'.rjust(w_borrow)} |")
-    print(separator)
+    for i in range(0, total, PAGE_SIZE):
+        chunk = books[i:i + PAGE_SIZE]
+        print(separator)
+        print(f"| {'Mã Sách'.ljust(w_id)} | {'Tên Sách'.ljust(w_title)} | {'Tác Giả'.ljust(w_author)} | {'Thể Loại'.ljust(w_genre)} | {'Kho'.rjust(w_qty)} |")
+        print(separator)
+        
+        for b in chunk:
+            title = (b.title[:w_title-3] + "...") if len(b.title) > w_title else b.title
+            author = (b.author[:w_author-3] + "...") if len(b.author) > w_author else b.author
+            genre = (b.genre[:w_genre-3] + "...") if len(b.genre) > w_genre else b.genre
+            print(f"| {b.book_id.ljust(w_id)} | {title.ljust(w_title)} | {author.ljust(w_author)} | {genre.ljust(w_genre)} | {str(b.quantity).rjust(w_qty)} |")
+        
+        print(separator)
+        if i + PAGE_SIZE < total:
+            input(f"\n👉 Đang xem {i + len(chunk)}/{total}. Nhấn Enter để sang trang tiếp theo...")
 
-    PAGE_SIZE = 15
-    total_books = len(books)
-
-    for i, b in enumerate(books):
-        title = (b.title[:w_title-3] + "...") if len(b.title) > w_title else b.title
-        author = (b.author[:w_author-3] + "...") if len(b.author) > w_author else b.author
-        genre = (b.genre[:w_genre-3] + "...") if len(b.genre) > w_genre else b.genre
-
-        row_id = b.book_id.ljust(w_id)
-        row_title = title.ljust(w_title)
-        row_author = author.ljust(w_author)
-        row_genre = genre.ljust(w_genre)
-        row_qty = str(b.quantity).rjust(w_qty)
-        row_borrow = str(b.borrow_count).rjust(w_borrow)
-
-        print(f"| {row_id} | {row_title} | {row_author} | {row_genre} | {row_qty} | {row_borrow} |")
-
-        if (i + 1) % PAGE_SIZE == 0 and (i + 1) < total_books:
-            print(separator)
-            input(f"\n👉 Đang xem {i+1}/{total_books}. Nhấn Enter để lật sang trang tiếp theo...")
-            print_header("DANH MỤC SÁCH THƯ VIỆN")
-            print(separator)
-
-    print(separator)
-    print(f"Tổng số bản ghi: {total_books}")
-
+def display_loans_paginated(loans: list[Loan]):
+    if not loans:
+        print("\n[!] Không có dữ liệu giao dịch.")
+        return
+        
+    PAGE_SIZE = 10
+    total = len(loans)
+    separator = "+----------+------------+------------+------------+------------+-----------+"
+    
+    for i in range(0, total, PAGE_SIZE):
+        chunk = loans[i:i + PAGE_SIZE]
+        print(separator)
+        print("| Mã Phiếu | Mã Độc giả | Mã Sách    | Ngày Mượn  | Trạng Thái | Phạt(VNĐ) |")
+        print(separator)
+        for l in chunk:
+            fee = str(int(l.overdue_fee))
+            print(f"| {l.loan_id.ljust(8)} | {l.user_id.ljust(10)} | {l.book_id.ljust(10)} | {str(l.borrow_date).ljust(10)} | {l.status.ljust(10)} | {fee.rjust(9)} |")
+        print(separator)
+        if i + PAGE_SIZE < total:
+            input(f"\n👉 Nhấn Enter để sang trang tiếp theo...")
 
 # ==========================================
-# 3. CÁC MENU CẤP 2 (SUB-MENUS)
+# 3. SUB-MENUS CỦA ADMIN
 # ==========================================
-def manage_books_menu(hash_map_obj):
+def admin_manage_books(hash_map, dll, user_array):
     while True:
-        print_header("MODULE 1: QUẢN LÝ KHO SÁCH (BIÊN MỤC)")
-        print("  1. Thêm sách mới vào kho")
-        print("  2. Hiển thị toàn bộ kho sách")
-        print("  3. Xóa sách khỏi hệ thống")
-        print("  0. Quay lại Menu Quản trị viên")
+        print_header("QUẢN LÝ KHO SÁCH (ADMIN)")
+        print("  1. Thêm sách mới")
+        print("  2. Sửa thông tin sách (Trừ Mã sách)")
+        print("  3. Xóa sách")
+        print("  4. Hiển thị danh sách kho (A-Z)")
+        print("  5. Tìm kiếm sách")
+        print("  0. Quay lại")
         print("-" * 80)
-
-        choice = input("👉 Chọn tác vụ (0-3): ").strip()
+        choice = input("👉 Chọn tác vụ: ").strip()
 
         if choice == '1':
-            print("\n📚 THÊM SÁCH MỚI VÀO KHO")
-            b_id = input("Mã sách (VD: B001): ").strip()
+            print("\n📚 THÊM SÁCH MỚI")
+            b_id = input("Mã sách: ").strip()
+            if hash_map.search(b_id):
+                print("[!] Lỗi: Mã sách đã tồn tại.")
+                pause(); continue
+                
             title = input("Tên sách: ").strip()
             author = input("Tác giả: ").strip()
             genre = input("Thể loại: ").strip()
             publisher = input("Nhà xuất bản: ").strip()
-            reg_num = input("Số ĐKCB (VD: DKCB-123456): ").strip()
-            year_str = input("Năm xuất bản: ").strip()
-            price_str = input("Giá tiền (VNĐ): ").strip()
-            qty_str = input("Số lượng nhập kho: ").strip()
+            qty_str = input("Số lượng: ").strip()
 
-            payload = {
-                "book_id": b_id, "title": title, "author": author,
-                "genre": genre, "publisher": publisher, "registration_number": reg_num
-            }
+            if not validator.validate_non_empty({"id": b_id, "title": title, "author": author}):
+                pause(); continue
+            if not validator.validate_quantity(qty_str):
+                print("[!] Lỗi: Số lượng phải là số nguyên > 0.")
+                pause(); continue
 
-            if not validator.validate_book_payload(payload):
-                pause()
-                continue
-            if not validator.validate_year(year_str) or not validator.validate_positive_float(price_str):
-                pause()
-                continue
-
-            if not qty_str.isdigit() or int(qty_str) <= 0:
-                print("[!] Lỗi: Số lượng phải là số nguyên lớn hơn 0.")
-                pause()
-                continue
-
-            print(f"\n[Giao diện] Đã lọc lỗi xong! Đang gọi hàm đưa sách '{title}' vào Bảng băm...")
-            # new_book = Book(b_id, title, author, genre, publisher, int(qty_str))
-            # hash_map_obj.insert(b_id, new_book)
-            # print("[✓] Thêm sách thành công!")
+            new_book = Book(b_id, title, author, genre, publisher, int(qty_str), "active", 0)
+            hash_map.insert(b_id, new_book)
+            _trigger_save(hash_map, dll, user_array)
+            print("[✓] Thêm sách thành công!")
             pause()
 
         elif choice == '2':
-            print("\n[Giao diện] Đang rút dữ liệu từ Bảng băm để vẽ ASCII Table...")
-            # books = hash_map_obj.get_all_books()
-            # display_book_table_interface(books)
+            print("\n✏️ SỬA THÔNG TIN SÁCH")
+            b_id = input("Nhập Mã sách cần sửa: ").strip()
+            book = hash_map.search(b_id)
+            if not book:
+                print("[!] Không tìm thấy sách.")
+                pause(); continue
+                
+            print(f"Đang sửa: {book.title} (Bỏ trống nếu không muốn đổi)")
+            title = input(f"Tên sách [{book.title}]: ").strip() or book.title
+            author = input(f"Tác giả [{book.author}]: ").strip() or book.author
+            qty_str = input(f"Số lượng [{book.quantity}]: ").strip()
+            
+            qty = book.quantity
+            if qty_str:
+                if validator.validate_quantity(qty_str):
+                    qty = int(qty_str)
+                else:
+                    print("[!] Lỗi số lượng. Giữ nguyên giá trị cũ.")
+
+            book.title, book.author, book.quantity = title, author, qty
+            hash_map.insert(b_id, book) # Cập nhật lại trong bảng băm
+            _trigger_save(hash_map, dll, user_array)
+            print("[✓] Cập nhật thành công!")
             pause()
 
         elif choice == '3':
-            print("\n🗑️ XÓA SÁCH KHỎI HỆ THỐNG")
+            print("\n🗑️ XÓA SÁCH")
             b_id = input("Nhập Mã sách cần xóa: ").strip()
-            if not b_id:
-                print("[!] Lỗi: Mã sách không được để trống.")
+            
+            # Kiểm tra xem sách có đang được mượn không (Quy tắc Docstring)
+            if loan_manager.is_book_on_loan(dll, b_id):
+                print("[!] Từ chối xóa: Sách này đang có người mượn hoặc nợ quá hạn.")
             else:
-                print(f"\n[Giao diện] Đang gọi lệnh xóa sách '{b_id}' khỏi Bảng băm...")
-                # success = hash_map_obj.delete(b_id)
-                # if success:
-                #     print("[✓] Đã xóa sách thành công!")
-                # else:
-                #     print("[!] Xóa thất bại: Không tìm thấy Mã sách.")
-            pause()
-
-        elif choice == '0':
-            break
-        else:
-            print("\n[!] Lựa chọn không hợp lệ.")
-            pause()
-
-def manage_loans_menu(hash_map_obj, dll_sys, user_list):
-    while True:
-        print_header("MODULE 2: NGHIỆP VỤ MƯỢN TRẢ & GIAO DỊCH")
-        print("  1. Tra cứu nhanh trạng thái sách (Còn/Hết)")
-        print("  2. Ghi nhận CHO MƯỢN sách (Tạo phiếu)")
-        print("  3. Ghi nhận TRẢ SÁCH & Thu tiền phạt")
-        print("  4. Theo dõi Sách đang mượn & Cảnh báo Quá hạn")
-        print("  0. Quay lại Menu Quản trị viên")
-        print("-" * 80)
-
-        choice = input("👉 Chọn tác vụ (0-4): ").strip()
-
-        if choice == '1':
-            print("\n🔍 TRA CỨU TRẠNG THÁI SÁCH")
-            keyword = input("Nhập tên sách hoặc tác giả cần tìm: ").strip()
-            if keyword:
-                print(f"\n[Giao diện] Đang gửi từ khóa '{keyword}' xuống tầng Logic để tìm trong Bảng băm...")
-                # results = search.search_books_by_keyword(hash_map_obj, keyword)
-                # display_book_table_interface(results)
-            pause()
-
-        elif choice == '2':
-            print("\n📝 TẠO PHIẾU MƯỢN SÁCH")
-            user_id = input("Nhập Mã độc giả (VD: U00001): ").strip()
-            book_id = input("Nhập Mã sách (VD: B001): ").strip()
-
-            if not user_id or not book_id:
-                print("\n[!] Lỗi: Mã độc giả và Mã sách không được để trống.")
-            else:
-                print(f"\n[Giao diện] Đang chuyển yêu cầu mượn sách ({book_id}) của độc giả ({user_id}) xuống tầng Logic...")
-                # success, msg = loan_manager.process_borrow(hash_map_obj, dll_sys, user_list, user_id, book_id)
-                # print(f"\nThông báo từ hệ thống: {msg}")
-            pause()
-
-        elif choice == '3':
-            print("\n✅ GHI NHẬN TRẢ SÁCH")
-            loan_id = input("Nhập Mã phiếu mượn (VD: L001): ").strip()
-
-            if not loan_id:
-                print("\n[!] Lỗi: Mã phiếu mượn không được để trống.")
-            else:
-                print(f"\n[Giao diện] Đang chuyển yêu cầu trả sách phiếu ({loan_id}) xuống tầng Logic...")
-                # success, fee, msg = loan_manager.process_return(hash_map_obj, dll_sys, loan_id)
-                # print(f"\nThông báo: {msg}")
-                # if fee > 0:
-                #     print(f"⚠️ CẢNH BÁO: Độc giả bị phạt {fee} VNĐ do nộp trễ hạn!")
+                success = hash_map.delete(b_id)
+                if success:
+                    _trigger_save(hash_map, dll, user_array)
+                    print("[✓] Đã xóa sách khỏi hệ thống.")
+                else:
+                    print("[!] Không tìm thấy sách để xóa.")
             pause()
 
         elif choice == '4':
-            print("\n⏰ DANH SÁCH QUÁ HẠN & ĐANG MƯỢN")
-            print("[Giao diện] Đang quét toàn bộ Danh sách liên kết kép (DLL) để lọc phiếu...")
-            # active_loans = loan_manager.get_active_and_overdue_loans(dll_sys)
+            print("\n📖 DANH SÁCH KHO SÁCH (A-Z)")
+            books = hash_map.get_all_books()
+            sorted_books = sort.quicksort(books, key="title")
+            display_books_paginated(sorted_books)
+            pause()
+
+        elif choice == '5':
+            print("\n🔍 TÌM KIẾM SÁCH")
+            keyword = input("Nhập từ khóa (Tên/Tác giả/Thể loại): ").strip()
+            # Gộp kết quả tìm kiếm (Giả định search trả về mảng)
+            res_title = search.search_by_title(hash_map, keyword)
+            display_books_paginated(res_title)
             pause()
 
         elif choice == '0':
             break
-        else:
-            print("\n[!] Lựa chọn không hợp lệ.")
+
+def admin_manage_loans(hash_map, dll, user_array):
+    while True:
+        print_header("NGHIỆP VỤ MƯỢN TRẢ (ADMIN)")
+        print("  1. Xử lý Mượn sách")
+        print("  2. Xử lý Trả sách")
+        print("  3. Xem toàn bộ lịch sử giao dịch")
+        print("  0. Quay lại")
+        print("-" * 80)
+        choice = input("👉 Chọn tác vụ: ").strip()
+
+        if choice == '1':
+            print("\n📝 TẠO PHIẾU MƯỢN")
+            u_id = input("Mã độc giả: ").strip()
+            b_id = input("Mã sách: ").strip()
+            success, msg = loan_manager.process_borrow(hash_map, dll, user_array, u_id, b_id)
+            print(f"\nHệ thống: {msg}")
+            if success: _trigger_save(hash_map, dll, user_array)
             pause()
 
-# ==========================================
-# 4. CÁC MENU RẼ NHÁNH CHÍNH
-# ==========================================
-def admin_menu(hash_map_obj, dll_sys, user_list, current_user: User):
+        elif choice == '2':
+            print("\n✅ GHI NHẬN TRẢ SÁCH")
+            u_id = input("Mã độc giả: ").strip()
+            b_id = input("Mã sách: ").strip()
+            success, msg, fee = loan_manager.process_return(hash_map, dll, user_array, u_id, b_id)
+            print(f"\nHệ thống: {msg}")
+            if fee > 0: print(f"⚠️ THU PHẠT: {fee} VNĐ (Trễ hạn)")
+            if success: _trigger_save(hash_map, dll, user_array)
+            pause()
+
+        elif choice == '3':
+            print("\n📜 LỊCH SỬ GIAO DỊCH TOÀN HỆ THỐNG")
+            loans = dll.get_all_transactions()
+            display_loans_paginated(loans)
+            pause()
+
+        elif choice == '0':
+            break
+
+def admin_manage_readers(hash_map, dll, user_array):
     while True:
-        print_header(f"👑 MENU QUẢN TRỊ VIÊN | Xin chào: {current_user.fullname}")
-        print("  1. Quản lý Kho Sách (Thêm, Sửa, Xóa, Xem)")
-        print("  2. Nghiệp vụ Mượn/Trả sách tại quầy")
-        print("  3. Đổi mật khẩu cá nhân")
+        print_header("QUẢN LÝ BẠN ĐỌC (ADMIN)")
+        print("  1. Tạo tài khoản bạn đọc mới (Cấp thẻ)")
+        print("  2. Xem danh sách bạn đọc")
+        print("  3. Xem lịch sử mượn trả của 1 bạn đọc")
+        print("  0. Quay lại")
+        print("-" * 80)
+        choice = input("👉 Chọn tác vụ: ").strip()
+
+        if choice == '1':
+            success, msg = account_manager.create_reader(user_array)
+            if success: _trigger_save(hash_map, dll, user_array)
+            pause()
+
+        elif choice == '2':
+            print("\n👥 DANH SÁCH BẠN ĐỌC")
+            users = user_array.get_all()
+            for u in users:
+                print(f" - {u.user_id.ljust(10)} | {u.fullname.ljust(20)} | Loại: {u.reader_type}")
+            pause()
+
+        elif choice == '3':
+            u_id = input("\nNhập Mã độc giả cần tra cứu: ").strip()
+            loans = dll.get_transactions_by_user(u_id)
+            display_loans_paginated(loans)
+            pause()
+
+        elif choice == '0':
+            break
+
+def admin_reports(hash_map, dll, user_array):
+    while True:
+        print_header("BÁO CÁO THỐNG KÊ (ADMIN)")
+        print("  1. Danh sách sách đang được mượn")
+        print("  2. Danh sách sách QUÁ HẠN")
+        print("  3. Top 5 sách mượn nhiều nhất")
+        print("  0. Quay lại")
+        print("-" * 80)
+        choice = input("👉 Chọn tác vụ: ").strip()
+
+        if choice == '1':
+            print("\n📖 SÁCH ĐANG ĐƯỢC MƯỢN")
+            data = report.get_borrowing_loans(dll, hash_map)
+            for d in data:
+                print(f"Phiếu: {d['loan_id']} | Sách: {d['title']} | Người mượn: {d['user_id']}")
+            pause()
+            
+        elif choice == '2':
+            print("\n⏰ SÁCH QUÁ HẠN TRẢ")
+            data = report.get_overdue_loans(dll, hash_map, user_array)
+            for d in data:
+                print(f"Phiếu: {d['loan_id']} | Trễ: {d['days_overdue']} ngày | Phạt: {d['temp_fee']}đ")
+            pause()
+            
+        elif choice == '3':
+            print("\n🔥 TOP 5 SÁCH HOT NHẤT")
+            books = report.get_top5_books(hash_map) # Lưu ý module report cần khởi tạo PriorityQueue bên trong
+            for idx, b in enumerate(books):
+                print(f" Top {idx+1}: {b.title} ({b.borrow_count} lượt mượn)")
+            pause()
+
+        elif choice == '0':
+            break
+
+# ==========================================
+# 4. MAIN MENUS (ĐƯỢC GỌI TỪ MAIN.PY)
+# ==========================================
+def run_admin_menu(hash_map, dll, user_array):
+    """Điểm truy cập chính của Admin."""
+    while True:
+        print_header("BẢNG ĐIỀU KHIỂN QUẢN TRỊ VIÊN")
+        print("  1. Quản lý Sách (Kho)")
+        print("  2. Nghiệp vụ Mượn/Trả")
+        print("  3. Quản lý Bạn đọc")
+        print("  4. Báo cáo thống kê")
         print("  0. Đăng xuất")
         print("-" * 80)
-
-        choice = input("👉 Chọn tác vụ (0-3): ").strip()
+        choice = input("👉 Chọn Module: ").strip()
 
         if choice == '1':
-            manage_books_menu(hash_map_obj) # Gọi menu con
+            admin_manage_books(hash_map, dll, user_array)
         elif choice == '2':
-            manage_loans_menu(hash_map_obj, dll_sys, user_list) # Gọi menu con
+            admin_manage_loans(hash_map, dll, user_array)
         elif choice == '3':
-            account_manager.show_change_password_form(current_user)
-            pause()
+            admin_manage_readers(hash_map, dll, user_array)
+        elif choice == '4':
+            admin_reports(hash_map, dll, user_array)
         elif choice == '0':
-            print("\nĐang đăng xuất khỏi tài khoản Quản trị...")
+            print("\nĐang đăng xuất...")
             break
         else:
             print("\n[!] Lựa chọn không hợp lệ.")
             pause()
 
-def reader_menu(hash_map_obj, dll_sys, current_user: User):
+def run_user_menu(hash_map, dll, user_array, current_user):
+    """Điểm truy cập chính của Độc giả."""
     while True:
-        print_header(f"👤 CỔNG ĐỘC GIẢ | Xin chào: {current_user.fullname}")
-        print(f"  Loại bạn đọc: {'Sinh viên' if current_user.reader_type == 'student' else 'Giảng viên'} | Hạn mức: {current_user.borrow_limit} cuốn")
-        print("-" * 80)
-        print("  1. Tra cứu sách trong thư viện")
-        print("  2. Xem sách đang mượn cá nhân")
-        print("  3. Đổi mật khẩu bảo mật")
+        print_header(f"CỔNG THÔNG TIN ĐỘC GIẢ | Xin chào: {current_user.fullname}")
+        print("  1. Tìm kiếm sách")
+        print("  2. Xem toàn bộ danh sách kho")
+        print("  3. Sách tôi đang mượn (Gồm hạn trả)")
+        print("  4. Phí phạt tạm tính (Nếu có)")
+        print("  5. Lịch sử mượn trả cá nhân")
         print("  0. Đăng xuất")
         print("-" * 80)
-
-        choice = input("👉 Chọn tác vụ (0-3): ").strip()
+        choice = input("👉 Chọn tác vụ: ").strip()
 
         if choice == '1':
-            print("\n[Đang tải danh mục sách...]")
+            print("\n🔍 TÌM KIẾM SÁCH")
+            keyword = input("Nhập từ khóa: ").strip()
+            res = search.search_by_title(hash_map, keyword)
+            display_books_paginated(res)
             pause()
+
         elif choice == '2':
-            print("\n[Đang tra cứu lịch sử trong Danh sách liên kết kép...]")
+            print("\n📖 KHO SÁCH (A-Z)")
+            books = hash_map.get_all_books()
+            sorted_books = sort.quicksort(books, key="title")
+            display_books_paginated(sorted_books)
             pause()
+
         elif choice == '3':
-            account_manager.show_change_password_form(current_user)
-            pause()
-        elif choice == '0':
-            print("\nĐang đăng xuất khỏi Cổng thông tin...")
-            break
-        else:
-            print("\n[!] Lựa chọn không hợp lệ.")
-            pause()
-
-# ==========================================
-# 5. ENTRY POINT: ĐIỀU PHỐI LUỒNG LỆNH CHÍNH
-# ==========================================
-def menu_main(hash_map_obj, dll_sys, user_list: list[User], books_path: str, users_path: str, loans_path: str) -> None:
-    while True:
-        print_header("HỆ THỐNG QUẢN LÝ THƯ VIỆN ĐẠI HỌC")
-        print("  1. Đăng nhập hệ thống")
-        print("  2. Đăng ký thẻ bạn đọc mới")
-        print("  0. Lưu dữ liệu và Thoát chương trình an toàn")
-        print("-" * 80)
-
-        choice = input("👉 Lựa chọn của bạn (0-2): ").strip()
-
-        if choice == '1':
-            current_user = account_manager.show_login_form(user_list)
-            if current_user:
-                if current_user.role == "admin":
-                    admin_menu(hash_map_obj, dll_sys, user_list, current_user)
-                else:
-                    reader_menu(hash_map_obj, dll_sys, current_user)
-            else:
-                pause()
-
-        elif choice == '2':
-            account_manager.show_register_form(user_list)
+            print("\n🎒 SÁCH BẠN ĐANG MƯỢN")
+            loans = dll.get_transactions_by_user(current_user.user_id)
+            active_loans = [l for l in loans if l.status in ("borrowing", "overdue")]
+            for l in active_loans:
+                b = hash_map.search(l.book_id)
+                title = b.title if b else "Không rõ"
+                print(f" - Mượn: {title} | Trạng thái: {l.status} | Hạn trả: {l.due_date}")
             pause()
 
-        elif choice == '0':
-            print("\n[Hệ thống] Đang kích hoạt lưu dữ liệu toàn cục xuống tệp CSV...")
-            try:
-                # data_processor.save_system_data(hash_map_obj, dll_sys, user_list, books_path, users_path, loans_path)
-                print("[Hệ thống] Đã đồng bộ an toàn. Đóng chương trình. Tạm biệt!")
-            except Exception as e:
-                print(f"[!] Lỗi khi đồng bộ dữ liệu: {e}")
-            break
-        else:
-            print("\n[!] Lựa chọn không hợp lệ.")
-            pause()
-
-if __name__ == "__main__":
-    dummy_users = [
-        User(user_id="admin", fullname="Quản trị tối cao", password="123", role="admin"),
-        User(user_id="U00001", fullname="Sinh viên A", password="123", role="user")
-    ]
-    menu_main(None, None, dummy_users, "books.csv", "users.csv", "loans.csv")
+        elif choice == '4':
+            print("\n💸 PHÍ PHẠT TẠM TÍNH TRỄ HẠN")
+            loans = dll.get_transactions_by_user(current
