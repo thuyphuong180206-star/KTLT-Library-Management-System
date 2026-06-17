@@ -1,9 +1,45 @@
 """
-MÔ-ĐUN ĐIỀU PHỐI DÒNG LỆNH VÀ XUẤT BẢNG ASCII TABLE (INTERFACE LAYER - MAIN ROUTER)
-Nhiệm vụ: Nơi duy nhất tổ chức cấu trúc vòng lặp lặp vô hạn `while True` để giữ luồng ứng dụng và vẽ khung bảng ASCII dữ liệu vuông vắn.
-Quy tắc kiến trúc: Điều phối luồng lệnh bằng cấu trúc rẽ nhánh điều kiện ứng với phím bấm của Admin và Reader. Gọi hàm đa tầng từ gói logic/ và storage/.
-"""
+Mô-đun giao diện menu chính (Main Menu)
+Nhiệm vụ: Vòng lặp while True điều hướng toàn bộ chức năng hệ thống.
+          Hiển thị bảng ASCII, phân trang 10 dòng/trang.
+          Nhận lựa chọn từ người dùng, gọi đúng hàm logic tương ứng,
+          hiển thị kết quả và gọi save_system_data() sau mỗi thao tác thay đổi dữ liệu.
+Các hàm:
+    - run_admin_menu(hash_map, dll, user_array)
+        Menu Admin — toàn quyền:
+        [1] Quản lý sách
+            1.1 Thêm sách mới
+            1.2 Sửa thông tin sách (không được sửa book_id)
+            1.3 Xóa sách (gọi is_book_on_loan() để kiểm tra trước khi xóa) 
+            1.4 Hiển thị danh sách kho (QuickSort A-Z, phân trang)
+            1.5 Tìm kiếm sách (theo tên / mã / tác giả / thể loại)
+        [2] Nghiệp vụ mượn/trả
+            2.1 Xử lý mượn sách
+            2.2 Xử lý trả sách + hiển thị tiền phạt
+            2.3 Xem toàn bộ lịch sử giao dịch
+        [3] Quản lý bạn đọc
+            3.1 Tạo tài khoản bạn đọc mới
+            3.2 Xem danh sách bạn đọc
+            3.3 Xem lịch sử mượn trả của một bạn đọc
+        [4] Báo cáo
+            4.1 Danh sách sách đang được mượn
+            4.2 Danh sách sách quá hạn
+            4.3 Top 5 sách mượn nhiều nhất
+        [0] Đăng xuất
 
+    - run_user_menu(hash_map, dll, user_array, current_user)
+        Menu User — chỉ đọc:
+        [1] Tìm kiếm sách
+        [2] Xem danh sách sách
+        [3] Sách tôi đang mượn + ngày hết hạn
+        [4] Phí phạt tạm tính (nếu có)
+        [5] Lịch sử mượn trả cá nhân
+        [0] Đăng xuất
+Import: logic.search, logic.sort, logic.loan_manager, logic.report,
+        interface.account_manager, interface.validator,
+        storage.data_processor
+Import bởi: main
+"""
 import os
 from interface import account_manager, validator
 # Import hờ các thư viện để chống lỗi, khi các bạn làm logic xong thì gỡ comment
