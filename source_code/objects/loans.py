@@ -77,7 +77,7 @@ class Loan:
             "user_id":     self.user_id,
             "book_id":     self.book_id,
             "borrow_date": format_date(self.borrow_date),
-            "due_date":    format_date(self.due_date),      # ← THÊM MỚI
+            "due_date":    format_date(self.due_date),
             "return_date": format_date(self.return_date),
             "status":      self.status,
             "overdue_fee": self.overdue_fee,
