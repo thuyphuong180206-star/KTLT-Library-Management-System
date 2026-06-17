@@ -1,1 +1,7 @@
 # Lưu lịch sử tất cả giao dịch mượn/trả sách
+loan_id,user_id,book_id,borrow_date,due_date,return_date,status,overdue_fee
+L001,202419090,B001,2026-06-10,2026-06-24,,borrowing,0.0
+L002,20231234,B002,2026-05-20,2026-06-03,,overdue,0.0
+L003,002.010.00042,B003,2026-06-01,2026-06-22,,borrowing,0.0
+L004,20220567,B007,2026-05-01,2026-05-15,2026-05-14,returned,0.0
+L005,20231234,B004,2026-04-01,2026-04-15,2026-04-20,returned,10000.0

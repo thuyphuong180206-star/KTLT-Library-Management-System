@@ -1,1 +1,8 @@
 # Lưu danh sách tài khoản hệ thống (Admin / Reader)
+user_id,fullname,password,role,reader_type
+admin,Admin Thu Vien,admin123,admin,
+202419090,Nguyen Van An,sv123,user,student
+20231234,Tran Thi Binh,sv456,user,student
+20220567,Le Van Cuong,sv789,user,student
+002.010.00042,PGS.TS. Pham Van Duc,gv123,user,lecturer
+002.010.00015,TS. Nguyen Thi Em,gv456,user,lecturer

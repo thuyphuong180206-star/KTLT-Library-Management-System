@@ -1,1 +1,22 @@
 # Lưu kho sách mở rộng (Đã cấu trúc lại thành 10 trường)
+book_id,title,author,genre,publisher,quantity,status,borrow_count
+B001,Lap trinh Python co ban,Nguyen Van An,Cong nghe,NXB Khoa hoc Ky thuat,2,active,15
+B002,Cau truc du lieu va Giai thuat,Tran Thi Binh,Cong nghe,NXB Dai hoc Quoc gia,1,active,10
+B003,Giai tich 1,Le Van Cuong,Toan hoc,NXB Giao duc,4,active,8
+B004,Vat ly dai cuong,Pham Thi Dung,Khoa hoc,NXB Dai hoc Quoc gia,1,active,5
+B005,Kinh te hoc vi mo,Nguyen Minh Duc,Kinh te,NXB Thong ke,0,active,12
+B006,Lich su Viet Nam,Tran Van Giang,Lich su,NXB Giao duc,4,active,3
+B007,Nhap mon Tri tue nhan tao,Le Thi Hoa,Cong nghe,NXB Khoa hoc Ky thuat,2,active,20
+B008,Co so du lieu,Nguyen Thanh Hung,Cong nghe,NXB Dai hoc Quoc gia,3,active,18
+B009,Mang may tinh,Tran Minh Khoa,Cong nghe,NXB Thong tin va Truyen thong,2,active,9
+B010,Lap trinh huong doi tuong,Le Van Long,Cong nghe,NXB Khoa hoc Ky thuat,1,active,14
+B011,Xac suat thong ke,Pham Thi Mai,Toan hoc,NXB Giao duc,3,active,7
+B012,Dai so tuyen tinh,Nguyen Van Nam,Toan hoc,NXB Dai hoc Quoc gia,5,active,6
+B013,Nguyen ly ke toan,Tran Thi Oanh,Kinh te,NXB Tai chinh,2,active,4
+B014,Phap luat dai cuong,Le Minh Phuong,Phap luat,NXB Tu phap,3,active,2
+B015,Ky nang mem trong cong viec,Nguyen Thi Quynh,Ky nang,NXB Tre,4,active,11
+B016,Lap trinh C co ban,Tran Van Rong,Cong nghe,NXB Khoa hoc Ky thuat,0,active,16
+B017,He dieu hanh,Le Thi Sam,Cong nghe,NXB Dai hoc Quoc gia,2,active,13
+B018,Triet hoc Mac-Lenin,Nguyen Van Tam,Chinh tri,NXB Chinh tri Quoc gia,6,active,5
+B019,Tu tuong Ho Chi Minh,Tran Thi Uyen,Chinh tri,NXB Chinh tri Quoc gia,5,active,4
+B020,Anh van chuyen nganh CNTT,Le Van Vinh,Ngoai ngu,NXB Dai hoc Quoc gia,3,active,8
