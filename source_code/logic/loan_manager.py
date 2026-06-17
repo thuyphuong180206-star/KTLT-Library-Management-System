@@ -1,21 +1,39 @@
 """
-BỘ QUẢN LÝ QUY TẮC NGHIỆP VỤ THƯ VIỆN LÕI (LOGIC LAYER - BUSINESS MANAGER)
-Nhiệm vụ: Quản lý logic thay đổi số lượng kho RAM, tính phí phạt lũy tiến hình phạt nặng ngày trễ hạn, điều tiết thứ hạng độc giả.
-Quy tắc kiến trúc: Không chứa lệnh nhập xuất chuỗi thô (print/input), tương tác trực tiếp hạ tầng bộ nhớ RAM phẳng.
+Mô-đun điều phối nghiệp vụ mượn/trả sách (Loan Manager)
+Nhiệm vụ: Xử lý toàn bộ logic nghiệp vụ mượn sách, trả sách và tính tiền phạt.
+Ràng buộc: Không chứa lệnh input/print. Trả về tuple (bool, str) thông báo kết quả.
+Hằng số phạt:
+    OVERDUE_FEE = {"student": 2000, "lecturer": 1000}  # VNĐ/ngày
+Các hàm:
+    - process_borrow(hash_map, dll, user_array, user_id, book_id)
+        Xử lý mượn sách. Kiểm tra theo thứ tự:
+            1. User tồn tại không?
+            2. Sách tồn tại không?
+            3. User có đang nợ phiếu "overdue" không? → từ chối
+            4. User có đang mượn quá borrow_limit không? → từ chối
+            5. User có đang mượn chính cuốn này không? → từ chối
+            6. Sách có đang lưu hành không (status == "active")? → từ chối nếu "inactive"
+7. Sách còn trong kho không (quantity > 0)? 
+       Nếu hợp lệ: tạo Loan (due_date tự tính), thêm vào DLL, giảm quantity đi 1, tăng borrow_count lên 1. 
+        Trả về: (bool, str)
 
-Các hàm bắt buộc phải viết trực tiếp:
-    - process_borrow(hash_map_obj: BookHashMap, dll_sys: TransactionList, user_id: str, book_id: str) -> dict[str, Any]:
-        + Xử lý: Tra cứu sách trên RAM qua hash_map_obj.search(book_id). Kiểm tra điều kiện quantity > 0. Nếu thỏa mãn, thực hiện gán:
-          trừ 1 số lượng tồn kho (set_quantity), tăng 1 lượt mượn tích lũy (set_borrow_count). Khởi tạo thực thể Loan mới (status="borrowing", borrow_date=ngày hiện tại),
-          gọi phương thức nạp dữ liệu dll_sys.add_transaction(new_loan) đẩy vào đuôi cấu trúc danh sách liên kết kép lịch sử.
-        + Kết quả trả về: Từ điển từ hiệu phản hồi trạng thái logic {"success": bool, "message": str}.
+    - process_return(hash_map, dll, user_array, user_id, book_id)
+        Xử lý trả sách.
+        Tìm phiếu gần nhất có status="borrowing" hoặc status="overdue" khớp user_id + book_id
+        Tính tiền phạt = số ngày quá hạn × đơn giá theo reader_type.
+        Cập nhật phiếu: return_date, status="returned", overdue_fee.
+        Tăng quantity sách lên 1. 
+        Trả về: (bool, str, float) — (thành công, thông báo, tiền phạt)
 
-    - process_return(hash_map_obj: BookHashMap, dll_sys: TransactionList, user_list: list[User], user_id: str, book_id: str, return_date_str: str) -> dict[str, Any]:
-        + Xử lý: Duyệt danh sách liên kết kép lịch sử tìm phiếu Loan có trạng thái "borrowing" khớp mã user và sách. Cộng lại 1 đơn vị quantity kho RAM.
-          Gọi thư viện datetime để tính khoảng cách ngày thực tế: delta_days = return_date - borrow_date.
-          Áp công thức tính phạt lũy tiến:
-             * Nếu delta_days <= 14: fee = 0
-             * Nếu 14 < delta_days <= 21: fee = (delta_days - 14) * 5,000
-             * Nếu delta_days > 21: fee = 35,000 + (delta_days - 21) * 15,000. Đồng thời duyệt mảng user_list, tìm đối tượng độc giả và gán set_priority_level("Restricted").
-        + Kết quả trả về: Từ điển chứa số liệu tất toán: {"success": bool, "overdue_days": int, "fee": float, "account_status": str}.
+    - calculate_overdue_fee(loan, user)
+        Tính tiền phạt tạm tính cho phiếu chưa trả.
+        Dùng cho tính năng xem phí real-time của user.
+        Trả về: float (VNĐ)
+    - is_book_on_loan(dll, book_id)
+Kiểm tra sách có đang được mượn không bằng cách duyệt DLL.
+Tìm phiếu có book_id khớp và status="borrowing" hoặc "overdue".
+Dùng cho chức năng xóa sách ở interface.menu.
+Trả về: bool 
+Import: logic.search, objects.loans.Loan
+Import bởi: interface.menu
 """
