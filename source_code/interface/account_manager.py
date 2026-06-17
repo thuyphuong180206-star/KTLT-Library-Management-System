@@ -1,9 +1,23 @@
 """
-MÔ-ĐUN QUẢN LÝ TÀI KHOẢN VÀ PHÂN QUYỀN TRÊN CONSOLE (INTERFACE LAYER - ACCOUNT INTERFACE)
-Nhiệm vụ: Hiển thị các biểu mẫu (form) đăng nhập, đăng ký thẻ độc giả, đổi mật khẩu bảo mật qua màn hình dòng lệnh.
-Quy tắc kiến trúc: Nhận tham chiếu mảng người dùng hệ thống từ RAM, phối hợp gọi hàm từ validator.py để lọc lỗi cú pháp gõ phím.
-"""
+Mô-đun quản lý tài khoản (Account Manager)
+Nhiệm vụ: Xử lý đăng nhập hệ thống và tạo tài khoản bạn đọc mới.
+Các hàm:
+    - login(user_array)
+        Nhận user_id và password từ bàn phím.
+        Tìm trong UserArray, so khớp password.
+        Trả về: User nếu đúng, None nếu sai.
+        Không giới hạn số lần thử.
 
+    - create_reader(user_array)
+        Chỉ admin được gọi hàm này.
+        Nhập user_id (MSSV hoặc mã GV) → gọi validate_user_id()
+        để tự động xác định reader_type.
+        Kiểm tra user_id chưa tồn tại trong UserArray.
+        Nhập fullname, password → tạo User mới → append vào UserArray.
+        Trả về: (bool, str) — (thành công, thông báo)
+Import: interface.validator, objects.users.User
+Import bởi: interface.menu, main
+"""
 from objects.users import User
 from interface import validator
 
