@@ -7,14 +7,13 @@ Thuộc tính:
     - author (str)       : Tác giả
     - genre (str)        : Thể loại
     - publisher (str)    : Nhà xuất bản
-    - quantity (int)     : Số lượng tồn kho
-    - status (str)       : Tình trạng vật lý ("active" = đang lưu hành | "inactive" = ngừng lưu hành)
-    - borrow_count (int) : Số lượt mượn tích lũy
+    - quantity (int)     : Số lượng tồn kho (>= 0)
+    - status (str): Tình trạng vật lý của đầu sách. Giá trị hợp lệ: "active" (đang lưu hành) | "inactive" (ngừng lưu hành) 
+    - borrow_count (int) : Tổng số lượt mượn tích lũy
 Phương thức: to_dict(), from_dict(), __repr__, __eq__
-Import bởi: storage.data_processor, logic.search, logic.sort, logic.loan_manager, interface.menu
+Import bởi: storage.data_processor, logic.search, logic.sort,
+            logic.loan_manager, logic.report, interface.menu
 """
-
-
 class Book:
     """
     Thực thể đại diện cho một cuốn sách trong hệ thống quản lý thư viện.
