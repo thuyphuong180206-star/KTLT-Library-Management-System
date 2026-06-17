@@ -1,81 +1,94 @@
 """
-Điểm khởi chạy hệ thống (Entry Point)
-Nhiệm vụ: Khởi động chương trình, nạp dữ liệu từ CSV lên RAM, điều hướng đến menu Admin hoặc User.
+Mô-đun quản lý tài khoản (Account Manager)
+Nhiệm vụ: Xử lý đăng nhập hệ thống và tạo tài khoản bạn đọc mới.
 """
 
-import os
-import sys
+from interface import validator
+from objects.users import User
 
-# Import các package theo đúng cấu trúc thư mục
-from storage import data_processor
-from interface import account_manager, menu
+def login(user_array) -> User | str | None:
+    """
+    Xử lý biểu mẫu đăng nhập hệ thống.
+    Nhận user_id và password từ bàn phím. Tìm trong UserArray, so khớp password.
+    Trả về: Đối tượng User nếu đúng, None nếu sai, hoặc "EXIT_SIGNAL" nếu muốn thoát.
+    """
+    print("\n" + "=" * 50)
+    print("🔑 ĐĂNG NHẬP HỆ THỐNG".center(50))
+    print("=" * 50)
 
-def get_data_paths():
-    """Hàm phụ trợ: Định vị hoặc tạo thư mục chứa file CSV an toàn trên mọi hệ điều hành."""
-    base_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-    data_dir = os.path.join(base_dir, "data")
+    user_id_input = input("Tài khoản (Mã số / '0' hoặc 'exit' để thoát): ").strip()
     
-    if not os.path.exists(data_dir):
-        os.makedirs(data_dir)
-        
-    books_path = os.path.join(data_dir, "books.csv")
-    users_path = os.path.join(data_dir, "users.csv")
-    loans_path = os.path.join(data_dir, "loans.csv")
+    # Bắt tín hiệu thoát đẩy về cho main.py xử lý lưu file
+    if user_id_input.lower() in ['0', 'exit']:
+        return "EXIT_SIGNAL"
+
+    password_input = input("Mật khẩu: ").strip()
+
+    # Sử dụng phương thức get_by_id() của cấu trúc dữ liệu tự build UserArray
+    user = user_array.get_by_id(user_id_input)
+
+    # Kiểm tra tồn tại và so khớp mật khẩu
+    if user is not None and user.password == password_input:
+        return user
+
+    print("\n[!] Đăng nhập thất bại: Sai tài khoản hoặc mật khẩu.")
+    return None
+
+
+def create_reader(user_array) -> tuple[bool, str]:
+    """
+    Xử lý biểu mẫu tạo tài khoản bạn đọc mới (Chỉ dành cho Admin/Thủ thư thao tác).
+    Nhập user_id -> xác định reader_type -> kiểm tra trùng lặp -> tạo User.
+    Trả về: (thành công: bool, thông báo: str)
+    """
+    print("\n" + "=" * 50)
+    print("📝 TẠO TÀI KHOẢN BẠN ĐỌC MỚI".center(50))
+    print("=" * 50)
+
+    # 1. Nhập Mã định danh và gọi màng lọc Regex để tự động phân loại
+    user_id = input("Nhập Mã độc giả (MSSV hoặc Mã Giảng viên): ").strip()
     
-    return books_path, users_path, loans_path
+    reader_type = validator.validate_user_id(user_id)
+    if reader_type is None:
+        # Nếu None, validator đã tự in dòng báo lỗi định dạng ra màn hình rồi
+        return False, "Định dạng mã độc giả không hợp lệ."
 
-def main():
-    books_path, users_path, loans_path = get_data_paths()
+    # 2. Kiểm tra mã độc giả đã tồn tại trong mảng RAM chưa
+    existing_user = user_array.get_by_id(user_id)
+    if existing_user is not None:
+        print(f"\n[!] Lỗi: Mã độc giả '{user_id}' đã tồn tại trong hệ thống (Họ tên: {existing_user.fullname}).")
+        return False, "Mã độc giả đã tồn tại."
+
+    # 3. Thu thập thông tin cá nhân cơ bản
+    fullname = input("Họ và tên đầy đủ: ").strip()
+    password = input("Mật khẩu bảo mật: ").strip()
+
+    # 4. Kiểm tra rỗng và check độ dài mật khẩu (gọi validator)
+    if not validator.validate_non_empty({"fullname": fullname, "password": password}):
+        # validator.validate_non_empty đã tự in cảnh báo rỗng
+        return False, "Trường thông tin bị bỏ trống."
+        
+    if not validator.validate_password(password):
+        # validator.validate_password đã tự in cảnh báo độ dài
+        return False, "Mật khẩu không đạt yêu cầu bảo mật."
+
+    # 5. Khởi tạo thực thể User với thông số chính xác
+    new_user = User(
+        user_id=user_id,
+        fullname=fullname,
+        password=password,
+        role="user",
+        reader_type=reader_type
+    )
+
+    # 6. Đẩy thẳng vào cuối mảng UserArray O(1)
+    user_array.append(new_user)
+
+    # Thông báo thành công
+    str_type = "Sinh viên" if reader_type == "student" else "Giảng viên"
+    print(f"\n[✓] Cấp thẻ thành công!")
+    print(f"    Họ tên   : {new_user.fullname}")
+    print(f"    Tài khoản: {new_user.user_id} ({str_type})")
+    print(f"    Hạn mức  : {new_user.borrow_limit} cuốn / {new_user.borrow_duration} ngày")
     
-    print("\n[Hệ thống] Đang khởi động và kết nối cơ sở dữ liệu...")
-    try:
-        # Bước 1: Gọi load_system_data() → nạp BookHashMap, TransactionList, UserArray
-        hash_map, dll, user_array = data_processor.load_system_data(books_path, users_path, loans_path)
-    except Exception as e:
-        print(f"[!] Lỗi nghiêm trọng khi nạp hệ thống: {e}")
-        sys.exit(1)
-
-    # Vòng lặp duy trì phần mềm
-    while True:
-        # Làm sạch màn hình trước khi hiện form đăng nhập
-        os.system('cls' if os.name == 'nt' else 'clear')
-        print("+" + "-" * 78 + "+")
-        print(f"|{'HỆ THỐNG QUẢN LÝ THƯ VIỆN ĐẠI HỌC'.center(78)}|")
-        print("+" + "-" * 78 + "+")
-        print(" (Gõ 'exit' hoặc '0' ở ô Tài khoản để tắt phần mềm)\n")
-        
-        # Bước 2: Hiển thị màn hình đăng nhập
-        current_user = account_manager.login(user_array)
-        
-        # Xử lý thoát chương trình
-        if current_user == "EXIT_SIGNAL":
-            print("\n[Hệ thống] Đang lưu dữ liệu toàn cục...")
-            try:
-                data_processor.save_system_data(hash_map, dll, user_array, books_path, users_path, loans_path)
-                print("[Hệ thống] Đã đồng bộ an toàn. Tạm biệt!")
-            except Exception as e:
-                print(f"[!] Lỗi khi ghi file CSV: {e}")
-            break
-            
-        # Nếu đăng nhập sai thì lặp lại (hàm login đã tự in câu chửi rồi)
-        if current_user is None:
-            input("\n👉 Nhấn Enter để thử lại...")
-            continue
-            
-        # Bước 3: Phân luồng điều hướng
-        if current_user.role == "admin":
-            # Chạy menu quản trị viên
-            menu.run_admin_menu(hash_map, dll, user_array)
-        else:
-            # Chạy menu độc giả
-            menu.run_user_menu(hash_map, dll, user_array, current_user)
-            
-        # Docstring của menu.py yêu cầu: gọi save_system_data() SAU MỖI thao tác thay đổi.
-        # Ở đây ta có thể chốt lưu thêm một lần nữa khi User/Admin đăng xuất khỏi vòng lặp của họ cho chắc cốp.
-        data_processor.save_system_data(hash_map, dll, user_array, books_path, users_path, loans_path)
-
-if __name__ == "__main__":
-    # Đảm bảo có thể chạy module bằng lệnh python source_code/main.py
-    # tự động nhận diện module cha để tránh lỗi ModuleNotFoundError
-    sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-    main()
+    return True, "Tạo tài khoản bạn đọc thành công."
