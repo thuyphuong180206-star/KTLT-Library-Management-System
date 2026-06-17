@@ -6,14 +6,14 @@ Thuộc tính:
     - user_id (str)            : Mã bạn đọc thực hiện mượn
     - book_id (str)            : Mã sách được mượn
     - borrow_date (date)       : Ngày mượn sách
-    - due_date (date)          : Ngày hết hạn trả (tính từ borrow_date theo hạn mức bạn đọc)
+    - due_date (date|None)     : Ngày hết hạn trả — do loan_manager tự tính,
+                                 không nhập thủ công (= borrow_date + borrow_duration)
     - return_date (date|None)  : Ngày trả thực tế (None nếu chưa trả)
     - status (str)             : Trạng thái ("borrowing" | "returned" | "overdue")
-    - overdue_fee (float)      : Tiền phạt quá hạn (đơn vị: VNĐ, mặc định 0.0)
+    - overdue_fee (float)      : Tiền phạt quá hạn (VNĐ, mặc định 0.0)
 Phương thức: to_dict(), from_dict(), _parse_date(), __repr__, __eq__
-Import bởi: storage.data_processor, logic.loan_manager
+Import bởi: storage.data_processor, logic.loan_manager, logic.report
 """
-
 from datetime import date, datetime
 from typing import Optional
 
