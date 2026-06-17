@@ -8,7 +8,7 @@ Thuộc tính:
     - genre (str)        : Thể loại
     - publisher (str)    : Nhà xuất bản
     - quantity (int)     : Số lượng tồn kho
-    - status (str)       : Trạng thái ("available", "borrowed", "unavailable")
+    - status (str)       : Tình trạng vật lý ("active" = đang lưu hành | "inactive" = ngừng lưu hành)
     - borrow_count (int) : Số lượt mượn tích lũy
 Phương thức: to_dict(), from_dict(), __repr__, __eq__
 Import bởi: storage.data_processor, logic.search, logic.sort, logic.loan_manager, interface.menu
@@ -26,12 +26,12 @@ class Book:
         genre (str):        Thể loại sách (ví dụ: "Công nghệ", "Toán học", "Văn học").
         publisher (str):    Nhà xuất bản.
         quantity (int):     Tổng số bản sách hiện có trong thư viện.
-        status (str):       Trạng thái hiện tại của sách.
-                            Giá trị hợp lệ: "available" | "borrowed" | "unavailable".
+        status (str):       Tình trạng vật lý của đầu sách.
+                            Giá trị hợp lệ: "active" (đang lưu hành) | "inactive" (ngừng lưu hành).
         borrow_count (int): Số lần sách đã được mượn (dùng để thống kê/sắp xếp).
     """
 
-    VALID_STATUSES = {"available", "borrowed", "unavailable"}
+    VALID_STATUSES = {"active", "inactive"}
 
     def __init__(
         self,
@@ -41,7 +41,7 @@ class Book:
         genre: str,
         publisher: str,
         quantity: int = 1,
-        status: str = "available",
+        status: str = "active",
         borrow_count: int = 0,
     ):
         """
@@ -54,7 +54,7 @@ class Book:
             genre (str):        Thể loại sách.
             publisher (str):    Nhà xuất bản.
             quantity (int):     Số lượng bản sách (mặc định: 1).
-            status (str):       Trạng thái sách (mặc định: "available").
+            status (str):       Tình trạng vật lý sách (mặc định: "active").
             borrow_count (int): Số lần đã được mượn (mặc định: 0).
         """
         self.book_id      = book_id
@@ -89,7 +89,7 @@ class Book:
             genre        = str(data["genre"]),
             publisher    = str(data["publisher"]),
             quantity     = int(data.get("quantity", 1)),
-            status       = str(data.get("status", "available")),
+            status       = str(data.get("status", "active")),
             borrow_count = int(data.get("borrow_count", 0)),
         )
 
