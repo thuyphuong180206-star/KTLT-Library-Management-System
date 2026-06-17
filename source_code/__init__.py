@@ -1,1 +1,3 @@
-# File rỗng định danh Python Package cho source_code/
+"""
+Package gốc chứa toàn bộ mã nguồn hệ thống quản lý thư viện.
+"""
