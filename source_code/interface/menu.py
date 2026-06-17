@@ -16,7 +16,11 @@ Các hàm:
         [2] Nghiệp vụ mượn/trả
             2.1 Xử lý mượn sách
             2.2 Xử lý trả sách + hiển thị tiền phạt
+            → sau khi trả thành công, gọi check_waiting_queue()
+            → nếu có người chờ: hiển thị "Có [tên] đang chờ cuốn này!"
             2.3 Xem toàn bộ lịch sử giao dịch
+            2.4 Xem danh sách chờ theo đầu sách
+            → admin nhập book_id, hệ thống hiển thị danh sách bạn đọc đang chờ
         [3] Quản lý bạn đọc
             3.1 Tạo tài khoản bạn đọc mới
             3.2 Xem danh sách bạn đọc
