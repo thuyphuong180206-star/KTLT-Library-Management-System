@@ -16,12 +16,14 @@ Các hàm:
 7. Sách còn trong kho không (quantity > 0)? 
        Nếu hợp lệ: tạo Loan (due_date tự tính), thêm vào DLL, giảm quantity đi 1, tăng borrow_count lên 1. 
         Trả về: (bool, str)
-    - process_return(hash_map, dll, user_array, user_id, book_id)
+    - process_return(hash_map, dll, user_array, waiting_queue, user_id, book_id)
         Xử lý trả sách.
         Tìm phiếu gần nhất có status="borrowing" hoặc status="overdue" khớp user_id + book_id
         Tính tiền phạt = số ngày quá hạn × đơn giá theo reader_type.
         Cập nhật phiếu: return_date, status="returned", overdue_fee.
-        Tăng quantity sách lên 1. 
+        Tăng quantity sách lên 1, rồi ưu tiên xét cho mượn ngay theo đúng thứ tự
+        trong waiting_queue (người đợi lâu nhất, còn đủ điều kiện mượn, được nhận sách
+        trước người tự do đến mượn). Người không còn đủ điều kiện vẫn giữ chỗ trong hàng đợi.
         Trả về: (bool, str, float) — (thành công, thông báo, tiền phạt)
     - calculate_overdue_fee(loan, user)
         Tính tiền phạt tạm tính cho phiếu chưa trả.
@@ -45,6 +47,7 @@ Import bởi: interface.menu
 """
 from datetime import date, timedelta
 from objects.loans import Loan
+from objects.requests import BorrowRequest
 
 OVERDUE_FEE = {"student": 2000, "lecturer": 1000}  # VNĐ/ngày
 
@@ -94,8 +97,8 @@ def process_borrow(hash_map, dll, user_array, user_id, book_id):
     return True, f"Muon sach thanh cong. Han tra: {due_date}."
 
 
-def process_return(hash_map, dll, user_array, user_id, book_id):
-    """Xử lý trả sách — tìm phiếu gần nhất, tính phạt, cập nhật. Trả về (bool, str, float)."""
+def process_return(hash_map, dll, user_array, waiting_queue, user_id, book_id):
+    """Xử lý trả sách — tìm phiếu gần nhất, tính phạt, cập nhật, ưu tiên hàng chờ. Trả về (bool, str, float)."""
     user = user_array.get_by_id(user_id)
     if user is None:
         return False, f"Khong tim thay doc gia co ma {user_id}.", 0.0
@@ -123,6 +126,15 @@ def process_return(hash_map, dll, user_array, user_id, book_id):
     target_loan.overdue_fee = fee
     book.quantity += 1
 
+    # Uu tien nguoi doi lau nhat cho dung book_id nay, neu con du dieu kien muon
+    for request in waiting_queue.to_list():
+        if request.book_id != book_id:
+            continue
+        success, _ = process_borrow(hash_map, dll, user_array, request.user_id, book_id)
+        if success:
+            waiting_queue.remove_match(lambda r: r.request_id == request.request_id)
+            break
+
     return True, "Tra sach thanh cong.", fee
 
 
@@ -148,20 +160,18 @@ def is_book_on_loan(dll, book_id):
 def add_to_waiting_queue(waiting_queue, user_id, book_id):
     """Thêm yêu cầu chờ mượn vào cuối WaitingQueue. Trả về (bool, str)."""
     for request in waiting_queue.to_list():
-        if request["user_id"] == user_id and request["book_id"] == book_id:
+        if request.user_id == user_id and request.book_id == book_id:
             return False, "Ban da co trong hang doi cho sach nay."
 
-    waiting_queue.enqueue({
-        "user_id": user_id,
-        "book_id": book_id,
-        "request_date": date.today(),
-    })
+    request_id = f"WR{waiting_queue.size + 1:03d}"
+    new_request = BorrowRequest(request_id, user_id, book_id, date.today())
+    waiting_queue.enqueue(new_request)
     return True, "Da them vao hang doi cho muon sach."
 
 
 def check_waiting_queue(waiting_queue, book_id):
     """Kiểm tra có ai đang chờ mượn cuốn sách này không. Trả về user_id hoặc None."""
     for request in waiting_queue.to_list():
-        if request["book_id"] == book_id:
-            return request["user_id"]
+        if request.book_id == book_id:
+            return request.user_id
     return None

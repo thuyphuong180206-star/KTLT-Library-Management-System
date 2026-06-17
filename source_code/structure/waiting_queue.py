@@ -11,6 +11,8 @@ Các phương thức:
     - is_empty()         : Kiểm tra hàng đợi rỗng, O(1)
     - size (property)   : Số lượng yêu cầu đang chờ, O(1)
     - to_list()          : Xuất toàn bộ hàng đợi ra CustomList theo thứ tự FIFO, O(n)
+    - remove_match(predicate) : Tìm và rút phần tử đầu tiên thỏa predicate ra khỏi hàng đợi
+                                 (dù không ở đầu hàng), giữ nguyên thứ tự phần còn lại, O(n)
 Import bởi: storage.data_processor, logic.loan_manager
 """
 from structure.custom_list import CustomList
@@ -101,3 +103,27 @@ class WaitingQueue:
             current = current.next
 
         return result
+
+    def remove_match(self, predicate):
+        """
+        Tìm phần tử đầu tiên thỏa predicate(item) == True và rút khỏi hàng đợi,
+        dù phần tử đó không nằm ở đầu hàng. Giữ nguyên thứ tự các phần tử còn lại.
+        Độ phức tạp: O(n)
+        """
+        prev = None
+        current = self._front
+
+        while current is not None:
+            if predicate(current.data):
+                if prev is None:
+                    self._front = current.next
+                else:
+                    prev.next = current.next
+                if current is self._rear:
+                    self._rear = prev
+                self._size -= 1
+                return current.data
+            prev = current
+            current = current.next
+
+        return None
