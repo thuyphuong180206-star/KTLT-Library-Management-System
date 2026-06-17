@@ -34,23 +34,16 @@ def _quick_sort_recursive(arr, low, high, key_fn):
         _quick_sort_recursive(arr, pivot_index + 1, high, key_fn)
 
 
-def _key_by_publisher(book):
-    return (book.get_publisher().lower(), book.get_title().lower())
+_KEY_FUNCS = {
+    "title": lambda book: book.title.lower(),
+    "author": lambda book: (book.author.lower(), book.title.lower()),
+    "publisher": lambda book: (book.publisher.lower(), book.title.lower()),
+}
 
 
-def _key_by_author(book):
-    return (book.get_author().lower(), book.get_title().lower())
-
-
-def quick_sort_by_publisher(book_list):
-    """Sắp xếp một danh sách sách mới theo Nhà xuất bản, trùng NXB thì sắp theo tên sách."""
+def quicksort(book_list, key="title"):
+    """Sắp xếp danh sách sách A-Z theo tiêu chí (mặc định: tên sách)."""
+    key_fn = _KEY_FUNCS.get(key, _KEY_FUNCS["title"])
     result = list(book_list)
-    _quick_sort_recursive(result, 0, len(result) - 1, _key_by_publisher)
-    return result
-
-
-def quick_sort_by_author(book_list):
-    """Sắp xếp một danh sách sách mới theo Tác giả, trùng tác giả thì sắp theo tên sách."""
-    result = list(book_list)
-    _quick_sort_recursive(result, 0, len(result) - 1, _key_by_author)
+    _quick_sort_recursive(result, 0, len(result) - 1, key_fn)
     return result

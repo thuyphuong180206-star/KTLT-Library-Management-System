@@ -114,7 +114,7 @@ class TransactionList:
         result = CustomList()
         current = self._head
         while current is not None:
-            if current.data.get_user_id() == user_id:
+            if current.data.user_id == user_id:
                 result.append(current.data)
             current = current.next
         return result

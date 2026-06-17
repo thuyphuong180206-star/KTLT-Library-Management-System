@@ -24,7 +24,7 @@ class PriorityQueue:
     def _sift_up(self, i):
         while i > 0:
             parent = (i - 1) // 2
-            if self._heap[i].get_borrow_count() > self._heap[parent].get_borrow_count():
+            if self._heap[i].borrow_count > self._heap[parent].borrow_count:
                 self._heap[i], self._heap[parent] = self._heap[parent], self._heap[i]
                 i = parent
             else:
@@ -36,9 +36,9 @@ class PriorityQueue:
         n = len(heap)
         while True:
             largest, l, r = i, 2*i+1, 2*i+2
-            if l < n and heap[l].get_borrow_count() > heap[largest].get_borrow_count():
+            if l < n and heap[l].borrow_count > heap[largest].borrow_count:
                 largest = l
-            if r < n and heap[r].get_borrow_count() > heap[largest].get_borrow_count():
+            if r < n and heap[r].borrow_count > heap[largest].borrow_count:
                 largest = r
             if largest != i:
                 heap[i], heap[largest] = heap[largest], heap[i]
