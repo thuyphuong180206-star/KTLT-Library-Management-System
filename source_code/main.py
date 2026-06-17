@@ -1,94 +1,81 @@
 """
 Điểm khởi chạy hệ thống (Entry Point)
 Nhiệm vụ: Khởi động chương trình, nạp dữ liệu từ CSV lên RAM, điều hướng đến menu Admin hoặc User.
-Luồng chạy:
-    1. Gọi load_system_data() → nạp BookHashMap, TransactionList, UserArray
-    2. Hiển thị màn hình đăng nhập (gọi account_manager.login())
-    3. Phân luồng: role="admin" → run_admin_menu() | role="user" → run_user_menu()
-Import: storage.data_processor, interface.menu, interface.account_manager
 """
+
 import os
 import sys
-import datetime
 
-# ==========================================
-# 1. CẤU HÌNH ĐƯỜNG DẪN ĐỘNG (SYS PATH INJECTION)
-# ==========================================
-# Xác định vị trí thư mục hiện tại đang chứa file main.py (thư mục source_code/)
-CURRENT_DIR = os.path.dirname(os.path.abspath(__file__))
+# Import các package theo đúng cấu trúc thư mục
+from storage import data_processor
+from interface import account_manager, menu
 
-# Đẩy thư mục source_code/ vào biến môi trường hệ thống để Python nhận diện các package nội bộ
-if CURRENT_DIR not in sys.path:
-    sys.path.append(CURRENT_DIR)
-
-# Import các module nội bộ sau khi đã tiêm đường dẫn
-try:
-    from storage import data_processor
-    from interface import menu
-except ModuleNotFoundError as e:
-    print(f"\n[!] LỖI KHỞI ĐỘNG CỐT LÕI: {e}")
-    print("Vui lòng đảm bảo bạn đang chạy file main.py trong đúng cấu trúc thư mục dự án.")
-    sys.exit(1)
-
-# ==========================================
-# 2. KHAI BÁO HẰNG SỐ ĐƯỜNG DẪN TỆP VẬT LÝ
-# ==========================================
-# Lùi lại một cấp từ source_code/ để ra thư mục gốc Library-Management-System/
-PROJECT_ROOT = os.path.dirname(CURRENT_DIR)
-
-DATA_DIR = os.path.join(PROJECT_ROOT, "data")
-BOOKS_CSV = os.path.join(DATA_DIR, "books.csv")
-USERS_CSV = os.path.join(DATA_DIR, "users.csv")
-LOANS_CSV = os.path.join(DATA_DIR, "loans.csv")
-
-# ==========================================
-# 3. HÀM KHỞI CHẠY CHÍNH (MAIN ROUTINE)
-# ==========================================
-def main():
-    print(f"[{datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')}] Đang khởi động hệ thống Thư viện...")
+def get_data_paths():
+    """Hàm phụ trợ: Định vị hoặc tạo thư mục chứa file CSV an toàn trên mọi hệ điều hành."""
+    base_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+    data_dir = os.path.join(base_dir, "data")
     
-    # Kiểm tra và tự động khởi tạo thư mục data/ nếu lần đầu clone Git về chưa có
-    if not os.path.exists(DATA_DIR):
-        try:
-            os.makedirs(DATA_DIR)
-            print(f"[!] Thư mục lưu trữ '{DATA_DIR}' chưa tồn tại. Hệ thống đã tự động tạo mới.")
-        except OSError as e:
-            print(f"[!] Không thể tạo thư mục lưu trữ: {e}")
-            sys.exit(1)
-
-    try:
-        # BƯỚC 1: Nạp toàn bộ dữ liệu từ tệp vật lý lên RAM phẳng
-        hash_map_obj, dll_sys, user_list = data_processor.load_system_data(
-            BOOKS_CSV, USERS_CSV, LOANS_CSV
-        )
+    if not os.path.exists(data_dir):
+        os.makedirs(data_dir)
         
-        # BƯỚC 2: Chuyển giao bộ nhớ RAM và quyền điều khiển luồng cho Tầng Giao diện
-        menu.menu_main(
-            hash_map_obj, 
-            dll_sys, 
-            user_list, 
-            BOOKS_CSV, 
-            USERS_CSV, 
-            LOANS_CSV
-        )
+    books_path = os.path.join(data_dir, "books.csv")
+    users_path = os.path.join(data_dir, "users.csv")
+    loans_path = os.path.join(data_dir, "loans.csv")
+    
+    return books_path, users_path, loans_path
 
-    except KeyboardInterrupt:
-        # Chốt chặn phòng ngừa: Người dùng bấm Ctrl+C để ép dừng chương trình
-        print("\n\n[!] CẢNH BÁO: Hệ thống bị ngắt đột ngột (KeyboardInterrupt).")
-        print("Đang tiến hành đồng bộ dữ liệu RAM xuống tệp CSV để tránh mất mát...")
-        try:
-            data_processor.save_system_data(
-                hash_map_obj, dll_sys, user_list, BOOKS_CSV, USERS_CSV, LOANS_CSV
-            )
-            print("Đã sao lưu dữ liệu an toàn. Đóng chương trình.")
-        except Exception as save_err:
-            print(f"[!] Lỗi nghiêm trọng khi sao lưu khẩn cấp: {save_err}")
-            
+def main():
+    books_path, users_path, loans_path = get_data_paths()
+    
+    print("\n[Hệ thống] Đang khởi động và kết nối cơ sở dữ liệu...")
+    try:
+        # Bước 1: Gọi load_system_data() → nạp BookHashMap, TransactionList, UserArray
+        hash_map, dll, user_array = data_processor.load_system_data(books_path, users_path, loans_path)
     except Exception as e:
-        print(f"\n[!] Hệ thống gặp lỗi Runtime không xác định: {e}")
+        print(f"[!] Lỗi nghiêm trọng khi nạp hệ thống: {e}")
+        sys.exit(1)
 
-# ==========================================
-# ĐIỂM KÍCH HOẠT DUY NHẤT
-# ==========================================
+    # Vòng lặp duy trì phần mềm
+    while True:
+        # Làm sạch màn hình trước khi hiện form đăng nhập
+        os.system('cls' if os.name == 'nt' else 'clear')
+        print("+" + "-" * 78 + "+")
+        print(f"|{'HỆ THỐNG QUẢN LÝ THƯ VIỆN ĐẠI HỌC'.center(78)}|")
+        print("+" + "-" * 78 + "+")
+        print(" (Gõ 'exit' hoặc '0' ở ô Tài khoản để tắt phần mềm)\n")
+        
+        # Bước 2: Hiển thị màn hình đăng nhập
+        current_user = account_manager.login(user_array)
+        
+        # Xử lý thoát chương trình
+        if current_user == "EXIT_SIGNAL":
+            print("\n[Hệ thống] Đang lưu dữ liệu toàn cục...")
+            try:
+                data_processor.save_system_data(hash_map, dll, user_array, books_path, users_path, loans_path)
+                print("[Hệ thống] Đã đồng bộ an toàn. Tạm biệt!")
+            except Exception as e:
+                print(f"[!] Lỗi khi ghi file CSV: {e}")
+            break
+            
+        # Nếu đăng nhập sai thì lặp lại (hàm login đã tự in câu chửi rồi)
+        if current_user is None:
+            input("\n👉 Nhấn Enter để thử lại...")
+            continue
+            
+        # Bước 3: Phân luồng điều hướng
+        if current_user.role == "admin":
+            # Chạy menu quản trị viên
+            menu.run_admin_menu(hash_map, dll, user_array)
+        else:
+            # Chạy menu độc giả
+            menu.run_user_menu(hash_map, dll, user_array, current_user)
+            
+        # Docstring của menu.py yêu cầu: gọi save_system_data() SAU MỖI thao tác thay đổi.
+        # Ở đây ta có thể chốt lưu thêm một lần nữa khi User/Admin đăng xuất khỏi vòng lặp của họ cho chắc cốp.
+        data_processor.save_system_data(hash_map, dll, user_array, books_path, users_path, loans_path)
+
 if __name__ == "__main__":
+    # Đảm bảo có thể chạy module bằng lệnh python source_code/main.py
+    # tự động nhận diện module cha để tránh lỗi ModuleNotFoundError
+    sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
     main()
