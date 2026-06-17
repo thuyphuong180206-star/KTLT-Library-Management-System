@@ -30,7 +30,7 @@ class User:
 
     BORROW_DURATIONS = {
         "student":  14,
-        "lecturer": 30,
+        "lecturer": 21,
         "":         0,   # admin không mượn sách
     }
 
