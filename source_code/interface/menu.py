@@ -314,9 +314,8 @@ def admin_manage_loans(hash_map, dll, user_array, waiting_queue):
             u_id = input("Mã độc giả: ").strip()
             b_id = input("Mã sách: ").strip().upper()
             
-            # Giả định process_return định nghĩa waiting_queue ở cuối
-            success, msg, fee = loan_manager.process_return(hash_map, dll, user_array, waiting_queue, u_id, b_id)   
-            
+            success, msg, fee = loan_manager.process_return(hash_map, dll, user_array, u_id, b_id, waiting_queue)
+
             print(f"\nHệ thống: {msg}")
             if fee > 0: print(f"⚠️ THU PHẠT: {fee} VNĐ (Trễ hạn)")
             if success: _trigger_save(hash_map, dll, user_array, waiting_queue)
