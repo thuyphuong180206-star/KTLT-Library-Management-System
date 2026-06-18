@@ -6,9 +6,10 @@ Cài đặt: Xây trên nền CustomList (mảng động tự quản lý capacit
 Các phương thức:
     - append(user_obj)         : Thêm người dùng vào cuối mảng, O(1)
     - get_by_id(user_id)       : Tìm người dùng theo mã, O(n)
-    - get_all()                : Lấy toàn bộ người dùng ra list thuần, O(n)
+    - get_all()                : Lấy toàn bộ người dùng ra CustomList, O(n)
     - remove_by_id(user_id)    : Xóa người dùng theo mã, O(n)
     - size()                   : Trả về số lượng người dùng hiện có, O(1)
+    - is_empty()               : Kiểm tra mảng người dùng có rỗng không, O(1)
 Import bởi: storage.data_processor, logic.loan_manager,
             interface.account_manager, interface.menu
 """
@@ -35,9 +36,12 @@ class UserArray:
         """Xóa người dùng theo user_id. Trả về True nếu đã xóa. O(n)."""
         return self._users.remove(lambda u: u.user_id == user_id)
 
-    def get_all(self) -> list:
-        """Lấy toàn bộ người dùng ra list thuần — dùng khi ghi CSV/hiển thị. O(n)."""
-        return self._users.to_list()
+    def get_all(self) -> CustomList:
+        """Lấy toàn bộ người dùng ra CustomList. O(n)."""
+        result = CustomList()
+        for user in self._users:
+            result.append(user)
+        return result
 
     def size(self) -> int:
         """Số lượng người dùng hiện có. O(1)."""
