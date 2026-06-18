@@ -85,7 +85,7 @@ from objects.requests import BorrowRequest
 OVERDUE_FEE = {"student": 2000, "lecturer": 1000}  # VNĐ/ngày
 
 
-def process_borrow(hash_map, dll, user_array, user_id, book_id, borrow_date=None):
+def process_borrow(hash_map, dll, user_array, user_id, book_id, waiting_queue, borrow_date=None):
     """Xử lý mượn sách theo đúng 7 bước kiểm tra. Trả về (bool, str)."""
     user = user_array.get_by_id(user_id)
     if user is None:
