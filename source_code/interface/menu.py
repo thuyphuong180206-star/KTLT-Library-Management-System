@@ -279,9 +279,13 @@ def admin_manage_loans(hash_map, dll, user_array, waiting_queue):
             u_id = input("Mã độc giả: ").strip()
             b_id = input("Mã sách: ").strip()
             
-            # ĐÃ THÊM waiting_queue VÀO ĐÂY
-            success, msg = loan_manager.process_borrow(hash_map, dll, user_array, waiting_queue, u_id, b_id)
-            
+            try:
+                # Nếu team giữ cấu trúc process_borrow cũ
+                success, msg = loan_manager.process_borrow(hash_map, dll, user_array, u_id, b_id)
+            except ValueError:
+                # Nếu team có truyền waiting_queue vào hàm mượn
+                success, msg = loan_manager.process_borrow(hash_map, dll, user_array, waiting_queue, u_id, b_id)
+                
             print(f"\nHệ thống: {msg}")
             if success: _trigger_save(hash_map, dll, user_array, waiting_queue)
             pause()
@@ -290,10 +294,7 @@ def admin_manage_loans(hash_map, dll, user_array, waiting_queue):
             print("\n✅ GHI NHẬN TRẢ SÁCH")
             u_id = input("Mã độc giả: ").strip()
             b_id = input("Mã sách: ").strip()
-            
-            # ĐÃ THÊM waiting_queue VÀO ĐÂY
-            success, msg, fee = loan_manager.process_return(hash_map, dll, user_array, waiting_queue, u_id, b_id)
-            
+            success, msg, fee = loan_manager.process_return(hash_map, dll, user_array, waiting_queue, u_id, b_id)    
             print(f"\nHệ thống: {msg}")
             if fee > 0: print(f"⚠️ THU PHẠT: {fee} VNĐ (Trễ hạn)")
             if success: _trigger_save(hash_map, dll, user_array, waiting_queue)
@@ -307,6 +308,7 @@ def admin_manage_loans(hash_map, dll, user_array, waiting_queue):
 
         elif choice == '0':
             break
+
 def admin_manage_readers(hash_map, dll, user_array, waiting_queue):
     while True:
         print_header("QUẢN LÝ BẠN ĐỌC (ADMIN)")
