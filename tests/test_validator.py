@@ -1,6 +1,7 @@
 """
 Kiểm thử xác thực dữ liệu đầu vào (Unit Test — Validator)
-Nhiệm vụ: Xác thực validate_user_id, validate_non_empty, validate_quantity, validate_password.
+Nhiệm vụ: Xác thực validate_user_id, validate_non_empty, validate_quantity, validate_password,
+          validate_person_name, validate_book_id, validate_text_length.
 Các test case:
     validate_user_id:
         - test_validate_user_id_student_8_digits
@@ -16,7 +17,7 @@ Các test case:
         - test_validate_non_empty_empty_dict
     validate_quantity:
         - test_validate_quantity_valid_positive
-        - test_validate_quantity_zero
+        - test_validate_quantity_zero_is_valid   : "0" hợp lệ (quy tắc mới: >= 0)
         - test_validate_quantity_negative
         - test_validate_quantity_non_numeric
         - test_validate_quantity_strips_whitespace
@@ -25,6 +26,20 @@ Các test case:
         - test_validate_password_too_short
         - test_validate_password_exactly_min_length
         - test_validate_password_strips_whitespace_before_check
+    validate_person_name:
+        - test_validate_person_name_valid_with_diacritics
+        - test_validate_person_name_rejects_digits
+        - test_validate_person_name_too_short
+        - test_validate_person_name_too_long
+    validate_book_id:
+        - test_validate_book_id_valid
+        - test_validate_book_id_valid_lowercase
+        - test_validate_book_id_wrong_prefix
+        - test_validate_book_id_wrong_digit_count
+    validate_text_length:
+        - test_validate_text_length_within_limit
+        - test_validate_text_length_exceeds_default_limit
+        - test_validate_text_length_custom_max_len
 Import: interface.validator
 """
 import unittest
@@ -78,8 +93,8 @@ class ValidatorTestCase(unittest.TestCase):
     def test_validate_quantity_valid_positive(self):
         self.assertTrue(validator.validate_quantity("5"))
 
-    def test_validate_quantity_zero(self):
-        self.assertFalse(validator.validate_quantity("0"))
+    def test_validate_quantity_zero_is_valid(self):
+        self.assertTrue(validator.validate_quantity("0"))
 
     def test_validate_quantity_negative(self):
         self.assertFalse(validator.validate_quantity("-5"))
@@ -105,6 +120,51 @@ class ValidatorTestCase(unittest.TestCase):
 
     def test_validate_password_strips_whitespace_before_check(self):
         self.assertFalse(validator.validate_password("  abc  "))
+
+    # ------------------------------------------------------------------ #
+    # validate_person_name
+    # ------------------------------------------------------------------ #
+
+    def test_validate_person_name_valid_with_diacritics(self):
+        self.assertTrue(validator.validate_person_name("Nguyễn Văn A"))
+
+    def test_validate_person_name_rejects_digits(self):
+        self.assertFalse(validator.validate_person_name("Nguyen Van A1"))
+
+    def test_validate_person_name_too_short(self):
+        self.assertFalse(validator.validate_person_name("A"))
+
+    def test_validate_person_name_too_long(self):
+        self.assertFalse(validator.validate_person_name("A" * 51))
+
+    # ------------------------------------------------------------------ #
+    # validate_book_id
+    # ------------------------------------------------------------------ #
+
+    def test_validate_book_id_valid(self):
+        self.assertTrue(validator.validate_book_id("B001"))
+
+    def test_validate_book_id_valid_lowercase(self):
+        self.assertTrue(validator.validate_book_id("b1024"))
+
+    def test_validate_book_id_wrong_prefix(self):
+        self.assertFalse(validator.validate_book_id("X001"))
+
+    def test_validate_book_id_wrong_digit_count(self):
+        self.assertFalse(validator.validate_book_id("B12345"))
+
+    # ------------------------------------------------------------------ #
+    # validate_text_length
+    # ------------------------------------------------------------------ #
+
+    def test_validate_text_length_within_limit(self):
+        self.assertTrue(validator.validate_text_length("Sach hay", "Ten sach"))
+
+    def test_validate_text_length_exceeds_default_limit(self):
+        self.assertFalse(validator.validate_text_length("A" * 51, "Ten sach"))
+
+    def test_validate_text_length_custom_max_len(self):
+        self.assertFalse(validator.validate_text_length("A" * 11, "Ten sach", max_len=10))
 
 
 if __name__ == "__main__":
