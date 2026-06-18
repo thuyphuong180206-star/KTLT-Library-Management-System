@@ -125,17 +125,30 @@ def display_loans_paginated(loans):
         
     PAGE_SIZE = 10
     total = len(loans)
-    separator = "+----------+------------+------------+------------+------------+-----------+"
+    
+    # Đường kẻ viền chuẩn khít 100% với tổng độ rộng các cột
+    separator = "+" + "-"*10 + "+" + "-"*15 + "+" + "-"*10 + "+" + "-"*12 + "+" + "-"*12 + "+" + "-"*11 + "+"
     
     for i in range(0, total, PAGE_SIZE):
         chunk = loans[i:i + PAGE_SIZE]
+        
+        # 1. In Header của trang
         print(separator)
-        print("| Mã Phiếu | Mã Độc giả | Mã Sách    | Ngày Mượn  | Trạng Thái | Phạt(VNĐ) |")
+        print(f"| {'Mã Phiếu':<8} | {'Mã Độc giả':<13} | {'Mã Sách':<8} | {'Ngày Mượn':<10} | {'Trạng Thái':<10} | {'Phạt(VNĐ)':>9} |")
         print(separator)
+        
+        # 2. In Data của trang
         for l in chunk:
-            fee = str(int(l.overdue_fee))
-            print(f"| {l.loan_id.ljust(8)} | {l.user_id.ljust(10)} | {l.book_id.ljust(10)} | {str(l.borrow_date).ljust(10)} | {l.status.ljust(10)} | {fee.rjust(9)} |")
+            # Bắt lỗi an toàn cho thuộc tính fee hoặc overdue_fee
+            fee_val = getattr(l, 'fee', getattr(l, 'overdue_fee', 0))
+            fee = str(int(fee_val))
+            
+            # Tất cả phải dùng format string y như header
+            print(f"| {l.loan_id:<8} | {l.user_id:<13} | {l.book_id:<8} | {str(l.borrow_date):<10} | {l.status:<10} | {fee:>9} |")
+            
         print(separator)
+        
+        # 3. Chuyển trang
         if i + PAGE_SIZE < total:
             input(f"\n👉 Đang xem {i + len(chunk)}/{total}. Nhấn Enter để sang trang tiếp theo...")
 
