@@ -287,7 +287,7 @@ def admin_manage_loans(hash_map, dll, user_array, waiting_queue):
         print("-" * 80)
         choice = input("👉 Chọn tác vụ: ").strip()
 
-       if choice == '1':
+        if choice == '1':
             print("\n📝 TẠO PHIẾU MƯỢN")
             u_id = input("Mã độc giả: ").strip()
             b_id = input("Mã sách: ").strip().upper()
@@ -302,17 +302,21 @@ def admin_manage_loans(hash_map, dll, user_array, waiting_queue):
                     continue  # Bỏ qua không gọi process_borrow nữa
             # ------------------------------------------
 
-            # Gọi xuống logic xử lý (Nếu sách còn, hoặc người dùng đã bấm 'y' ở trên)
+            # Gọi thẳng hàm với đủ 6 tham số (không có try-except)
             success, msg = loan_manager.process_borrow(hash_map, dll, user_array, waiting_queue, u_id, b_id)
             
             print(f"\nHệ thống: {msg}")
             if success: _trigger_save(hash_map, dll, user_array, waiting_queue)
             pause()
+
         elif choice == '2':
             print("\n✅ GHI NHẬN TRẢ SÁCH")
             u_id = input("Mã độc giả: ").strip()
-            b_id = input("Mã sách: ").strip()
+            b_id = input("Mã sách: ").strip().upper()
+            
+            # Gọi thẳng hàm với đủ 6 tham số (không có try-except)
             success, msg, fee = loan_manager.process_return(hash_map, dll, user_array, waiting_queue, u_id, b_id)    
+            
             print(f"\nHệ thống: {msg}")
             if fee > 0: print(f"⚠️ THU PHẠT: {fee} VNĐ (Trễ hạn)")
             if success: _trigger_save(hash_map, dll, user_array, waiting_queue)
