@@ -246,6 +246,7 @@ def admin_manage_loans(hash_map, dll, user_array, waiting_queue):
         print("-" * 80)
         choice = input("👉 Chọn tác vụ: ").strip()
 
+
         if choice == '1':
             print("\n📝 TẠO PHIẾU MƯỢN")
             u_id = input("Mã độc giả: ").strip()
@@ -256,31 +257,28 @@ def admin_manage_loans(hash_map, dll, user_array, waiting_queue):
                 print("[!] Không tìm thấy sách!")
                 pause(); continue
 
-            # --- CHỐT CHẶN Ở GIAO DIỆN (Menu) ---
+            # Chốt chặn: Sách hết thì hỏi vào hàng đợi
             if book.quantity <= 0:
                 confirm = input("⚠️ Sách đã hết! Bạn có muốn vào hàng đợi không? (y/n): ").strip().lower()
                 if confirm == 'y':
-                    # Gọi hàm thêm vào hàng đợi ngay tại menu
                     success, msg = loan_manager.add_to_waiting_queue(waiting_queue, u_id, b_id)
                     print(f"Hệ thống: {msg}")
                 else:
                     print("Hệ thống: Đã hủy.")
-                pause(); continue # Dừng lại, không cho gọi hàm mượn nữa
-            # ------------------------------------
+                pause(); continue 
 
-            # Nếu quantity > 0 thì mới cho gọi hàm mượn bình thường
+            # GỌI HÀM MƯỢN VỚI ĐỦ 6 THAM SỐ
             success, msg = loan_manager.process_borrow(hash_map, dll, user_array, u_id, b_id, waiting_queue)
             
             print(f"\nHệ thống: {msg}")
             if success: _trigger_save(hash_map, dll, user_array, waiting_queue)
             pause()
-
         elif choice == '2':
             print("\n✅ GHI NHẬN TRẢ SÁCH")
             u_id = input("Mã độc giả: ").strip()
             b_id = input("Mã sách: ").strip().upper()
             
-
+            # Truyền waiting_queue vào để hàm Trả sách tự động xét người chờ
             success, msg, fee = loan_manager.process_return(hash_map, dll, user_array, waiting_queue, u_id, b_id)
             
             print(f"\nHệ thống: {msg}")
