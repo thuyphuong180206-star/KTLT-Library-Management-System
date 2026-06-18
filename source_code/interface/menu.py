@@ -251,17 +251,25 @@ def admin_manage_loans(hash_map, dll, user_array, waiting_queue):
             u_id = input("Mã độc giả: ").strip()
             b_id = input("Mã sách: ").strip().upper()
             
-            # --- KIỂM TRA HÀNG ĐỢI KHI HẾT SÁCH ---
             book = hash_map.search(b_id)
-            if book and book.quantity <= 0:
-                confirm = input("⚠️ Sách đã hết trong kho! Bạn có muốn tham gia Hàng đợi không? (y/n): ").strip().lower()
-                if confirm != 'y':
-                    print("Hệ thống: Đã hủy yêu cầu mượn sách. Trở về Menu chính.")
-                    pause()
-                    continue  
-            # ---------------------------------------
+            if not book:
+                print("[!] Không tìm thấy sách!")
+                pause(); continue
 
-            success, msg = loan_manager.process_borrow(hash_map, dll, user_array, u_id, b_id)
+            # --- CHỐT CHẶN Ở GIAO DIỆN (Menu) ---
+            if book.quantity <= 0:
+                confirm = input("⚠️ Sách đã hết! Bạn có muốn vào hàng đợi không? (y/n): ").strip().lower()
+                if confirm == 'y':
+                    # Gọi hàm thêm vào hàng đợi ngay tại menu
+                    success, msg = loan_manager.add_to_waiting_queue(waiting_queue, u_id, b_id)
+                    print(f"Hệ thống: {msg}")
+                else:
+                    print("Hệ thống: Đã hủy.")
+                pause(); continue # Dừng lại, không cho gọi hàm mượn nữa
+            # ------------------------------------
+
+            # Nếu quantity > 0 thì mới cho gọi hàm mượn bình thường
+            success, msg = loan_manager.process_borrow(hash_map, dll, user_array, u_id, b_id, waiting_queue)
             
             print(f"\nHệ thống: {msg}")
             if success: _trigger_save(hash_map, dll, user_array, waiting_queue)
