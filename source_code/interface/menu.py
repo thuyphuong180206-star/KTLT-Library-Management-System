@@ -69,23 +69,30 @@ def print_header(title: str):
 def pause():
     input("\n👉 Nhấn Enter để tiếp tục...")
 
-def _trigger_save(hash_map, dll, user_array):
+def _trigger_save(hash_map, dll, user_array, waiting_queue):
     """Lưu dữ liệu ngầm sau mỗi thao tác thay đổi trạng thái hệ thống."""
     base_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
     data_dir = os.path.join(base_dir, "data")
+    
+    # Đảm bảo thư mục data tồn tại
+    if not os.path.exists(data_dir):
+        os.makedirs(data_dir)
+        
     books_path = os.path.join(data_dir, "books.csv")
     users_path = os.path.join(data_dir, "users.csv")
     loans_path = os.path.join(data_dir, "loans.csv")
+    waiting_path = os.path.join(data_dir, "waiting_requests.csv")
+    
     try:
-        data_processor.save_system_data(hash_map, dll, user_array, books_path, users_path, loans_path)
+        data_processor.save_system_data(hash_map, dll, user_array, waiting_queue, books_path, users_path, loans_path, waiting_path)
     except Exception as e:
         print(f"\n[!] Lỗi khi tự động lưu dữ liệu: {e}")
 
 # ==========================================
-# 2. CÁC HÀM IN BẢNG ASCII PHÂN TRANG (10 DÒNG/TRANG)
+# 2. CÁC HÀM IN BẢNG ASCII PHÂN TRANG
 # ==========================================
-def display_books_paginated(books: list[Book]):
-    if not books:
+def display_books_paginated(books):
+    if not books or len(books) == 0:
         print("\n[!] Không có dữ liệu sách.")
         return
 
@@ -111,8 +118,8 @@ def display_books_paginated(books: list[Book]):
         if i + PAGE_SIZE < total:
             input(f"\n👉 Đang xem {i + len(chunk)}/{total}. Nhấn Enter để sang trang tiếp theo...")
 
-def display_loans_paginated(loans: list[Loan]):
-    if not loans:
+def display_loans_paginated(loans):
+    if not loans or len(loans) == 0:
         print("\n[!] Không có dữ liệu giao dịch.")
         return
         
@@ -130,12 +137,12 @@ def display_loans_paginated(loans: list[Loan]):
             print(f"| {l.loan_id.ljust(8)} | {l.user_id.ljust(10)} | {l.book_id.ljust(10)} | {str(l.borrow_date).ljust(10)} | {l.status.ljust(10)} | {fee.rjust(9)} |")
         print(separator)
         if i + PAGE_SIZE < total:
-            input(f"\n👉 Nhấn Enter để sang trang tiếp theo...")
+            input(f"\n👉 Đang xem {i + len(chunk)}/{total}. Nhấn Enter để sang trang tiếp theo...")
 
 # ==========================================
 # 3. SUB-MENUS CỦA ADMIN
 # ==========================================
-def admin_manage_books(hash_map, dll, user_array):
+def admin_manage_books(hash_map, dll, user_array, waiting_queue):
     while True:
         print_header("QUẢN LÝ KHO SÁCH (ADMIN)")
         print("  1. Thêm sách mới")
@@ -168,7 +175,7 @@ def admin_manage_books(hash_map, dll, user_array):
 
             new_book = Book(b_id, title, author, genre, publisher, int(qty_str), "active", 0)
             hash_map.insert(b_id, new_book)
-            _trigger_save(hash_map, dll, user_array)
+            _trigger_save(hash_map, dll, user_array, waiting_queue)
             print("[✓] Thêm sách thành công!")
             pause()
 
@@ -193,8 +200,8 @@ def admin_manage_books(hash_map, dll, user_array):
                     print("[!] Lỗi số lượng. Giữ nguyên giá trị cũ.")
 
             book.title, book.author, book.quantity = title, author, qty
-            hash_map.insert(b_id, book) # Cập nhật lại trong bảng băm
-            _trigger_save(hash_map, dll, user_array)
+            hash_map.insert(b_id, book) 
+            _trigger_save(hash_map, dll, user_array, waiting_queue)
             print("[✓] Cập nhật thành công!")
             pause()
 
@@ -202,13 +209,12 @@ def admin_manage_books(hash_map, dll, user_array):
             print("\n🗑️ XÓA SÁCH")
             b_id = input("Nhập Mã sách cần xóa: ").strip()
             
-            # Kiểm tra xem sách có đang được mượn không (Quy tắc Docstring)
             if loan_manager.is_book_on_loan(dll, b_id):
                 print("[!] Từ chối xóa: Sách này đang có người mượn hoặc nợ quá hạn.")
             else:
                 success = hash_map.delete(b_id)
                 if success:
-                    _trigger_save(hash_map, dll, user_array)
+                    _trigger_save(hash_map, dll, user_array, waiting_queue)
                     print("[✓] Đã xóa sách khỏi hệ thống.")
                 else:
                     print("[!] Không tìm thấy sách để xóa.")
@@ -216,23 +222,29 @@ def admin_manage_books(hash_map, dll, user_array):
 
         elif choice == '4':
             print("\n📖 DANH SÁCH KHO SÁCH (A-Z)")
-            books = hash_map.get_all_books()
-            sorted_books = sort.quicksort(books, key="title")
-            display_books_paginated(sorted_books)
+            books_cl = hash_map.get_all_books()
+            # Gọi hàm wrapper quicksort trong sort.py
+            try:
+                sorted_books = sort.quicksort(books_cl, key="title")
+                display_books_paginated(sorted_books)
+            except AttributeError:
+                # Fallback an toàn nếu team chưa kịp thêm hàm quicksort(key="title") vào sort.py
+                books_list = books_cl.to_list()
+                books_list.sort(key=lambda x: x.title)
+                display_books_paginated(books_list)
             pause()
 
         elif choice == '5':
             print("\n🔍 TÌM KIẾM SÁCH")
             keyword = input("Nhập từ khóa (Tên/Tác giả/Thể loại): ").strip()
-            # Gộp kết quả tìm kiếm (Giả định search trả về mảng)
-            res_title = search.search_by_title(hash_map, keyword)
+            res_title = search.search_books_by_keyword(hash_map, keyword)
             display_books_paginated(res_title)
             pause()
 
         elif choice == '0':
             break
 
-def admin_manage_loans(hash_map, dll, user_array):
+def admin_manage_loans(hash_map, dll, user_array, waiting_queue):
     while True:
         print_header("NGHIỆP VỤ MƯỢN TRẢ (ADMIN)")
         print("  1. Xử lý Mượn sách")
@@ -246,19 +258,31 @@ def admin_manage_loans(hash_map, dll, user_array):
             print("\n📝 TẠO PHIẾU MƯỢN")
             u_id = input("Mã độc giả: ").strip()
             b_id = input("Mã sách: ").strip()
-            success, msg = loan_manager.process_borrow(hash_map, dll, user_array, u_id, b_id)
+            
+            try:
+                # Nếu team giữ cấu trúc process_borrow cũ
+                success, msg = loan_manager.process_borrow(hash_map, dll, user_array, u_id, b_id)
+            except ValueError:
+                # Nếu team có truyền waiting_queue vào hàm mượn
+                success, msg = loan_manager.process_borrow(hash_map, dll, user_array, waiting_queue, u_id, b_id)
+                
             print(f"\nHệ thống: {msg}")
-            if success: _trigger_save(hash_map, dll, user_array)
+            if success: _trigger_save(hash_map, dll, user_array, waiting_queue)
             pause()
 
         elif choice == '2':
             print("\n✅ GHI NHẬN TRẢ SÁCH")
             u_id = input("Mã độc giả: ").strip()
             b_id = input("Mã sách: ").strip()
-            success, msg, fee = loan_manager.process_return(hash_map, dll, user_array, u_id, b_id)
+            
+            try:
+                success, msg, fee = loan_manager.process_return(hash_map, dll, user_array, u_id, b_id)
+            except ValueError:
+                 success, msg, fee = loan_manager.process_return(hash_map, dll, user_array, waiting_queue, u_id, b_id)
+                 
             print(f"\nHệ thống: {msg}")
             if fee > 0: print(f"⚠️ THU PHẠT: {fee} VNĐ (Trễ hạn)")
-            if success: _trigger_save(hash_map, dll, user_array)
+            if success: _trigger_save(hash_map, dll, user_array, waiting_queue)
             pause()
 
         elif choice == '3':
@@ -270,7 +294,7 @@ def admin_manage_loans(hash_map, dll, user_array):
         elif choice == '0':
             break
 
-def admin_manage_readers(hash_map, dll, user_array):
+def admin_manage_readers(hash_map, dll, user_array, waiting_queue):
     while True:
         print_header("QUẢN LÝ BẠN ĐỌC (ADMIN)")
         print("  1. Tạo tài khoản bạn đọc mới (Cấp thẻ)")
@@ -282,7 +306,7 @@ def admin_manage_readers(hash_map, dll, user_array):
 
         if choice == '1':
             success, msg = account_manager.create_reader(user_array)
-            if success: _trigger_save(hash_map, dll, user_array)
+            if success: _trigger_save(hash_map, dll, user_array, waiting_queue)
             pause()
 
         elif choice == '2':
@@ -327,7 +351,9 @@ def admin_reports(hash_map, dll, user_array):
             
         elif choice == '3':
             print("\n🔥 TOP 5 SÁCH HOT NHẤT")
-            books = report.get_top5_books(hash_map) # Lưu ý module report cần khởi tạo PriorityQueue bên trong
+            from structure.priority_queue import PriorityQueue
+            pq = PriorityQueue()
+            books = report.get_top5_books(hash_map, pq) 
             for idx, b in enumerate(books):
                 print(f" Top {idx+1}: {b.title} ({b.borrow_count} lượt mượn)")
             pause()
@@ -338,7 +364,7 @@ def admin_reports(hash_map, dll, user_array):
 # ==========================================
 # 4. MAIN MENUS (ĐƯỢC GỌI TỪ MAIN.PY)
 # ==========================================
-def run_admin_menu(hash_map, dll, user_array):
+def run_admin_menu(hash_map, dll, user_array, waiting_queue):
     """Điểm truy cập chính của Admin."""
     while True:
         print_header("BẢNG ĐIỀU KHIỂN QUẢN TRỊ VIÊN")
@@ -351,11 +377,11 @@ def run_admin_menu(hash_map, dll, user_array):
         choice = input("👉 Chọn Module: ").strip()
 
         if choice == '1':
-            admin_manage_books(hash_map, dll, user_array)
+            admin_manage_books(hash_map, dll, user_array, waiting_queue)
         elif choice == '2':
-            admin_manage_loans(hash_map, dll, user_array)
+            admin_manage_loans(hash_map, dll, user_array, waiting_queue)
         elif choice == '3':
-            admin_manage_readers(hash_map, dll, user_array)
+            admin_manage_readers(hash_map, dll, user_array, waiting_queue)
         elif choice == '4':
             admin_reports(hash_map, dll, user_array)
         elif choice == '0':
@@ -365,7 +391,7 @@ def run_admin_menu(hash_map, dll, user_array):
             print("\n[!] Lựa chọn không hợp lệ.")
             pause()
 
-def run_user_menu(hash_map, dll, user_array, current_user):
+def run_user_menu(hash_map, dll, user_array, waiting_queue, current_user):
     """Điểm truy cập chính của Độc giả."""
     while True:
         print_header(f"CỔNG THÔNG TIN ĐỘC GIẢ | Xin chào: {current_user.fullname}")
@@ -381,27 +407,53 @@ def run_user_menu(hash_map, dll, user_array, current_user):
         if choice == '1':
             print("\n🔍 TÌM KIẾM SÁCH")
             keyword = input("Nhập từ khóa: ").strip()
-            res = search.search_by_title(hash_map, keyword)
+            res = search.search_books_by_keyword(hash_map, keyword)
             display_books_paginated(res)
             pause()
 
         elif choice == '2':
             print("\n📖 KHO SÁCH (A-Z)")
-            books = hash_map.get_all_books()
-            sorted_books = sort.quicksort(books, key="title")
-            display_books_paginated(sorted_books)
+            books_cl = hash_map.get_all_books()
+            try:
+                sorted_books = sort.quicksort(books_cl, key="title")
+                display_books_paginated(sorted_books)
+            except AttributeError:
+                books_list = books_cl.to_list()
+                books_list.sort(key=lambda x: x.title)
+                display_books_paginated(books_list)
             pause()
 
         elif choice == '3':
             print("\n🎒 SÁCH BẠN ĐANG MƯỢN")
             loans = dll.get_transactions_by_user(current_user.user_id)
             active_loans = [l for l in loans if l.status in ("borrowing", "overdue")]
-            for l in active_loans:
-                b = hash_map.search(l.book_id)
-                title = b.title if b else "Không rõ"
-                print(f" - Mượn: {title} | Trạng thái: {l.status} | Hạn trả: {l.due_date}")
+            if not active_loans:
+                print("Bạn hiện không mượn cuốn sách nào.")
+            else:
+                for l in active_loans:
+                    b = hash_map.search(l.book_id)
+                    title = b.title if b else "Không rõ"
+                    print(f" - Mượn: {title} | Trạng thái: {l.status} | Hạn trả: {l.due_date}")
             pause()
 
         elif choice == '4':
             print("\n💸 PHÍ PHẠT TẠM TÍNH TRỄ HẠN")
-            loans = dll.get_transactions_by_user(current
+            loans = dll.get_transactions_by_user(current_user.user_id)
+            total_fee = sum(l.overdue_fee for l in loans if l.status == "overdue")
+            print(f"Tổng tiền phạt hiện tại của bạn là: {int(total_fee)} VNĐ")
+            if total_fee == 0:
+                print("Tuyệt vời! Bạn không có khoản phạt nào.")
+            pause()
+
+        elif choice == '5':
+            print("\n📜 LỊCH SỬ MƯỢN TRẢ CÁ NHÂN")
+            loans = dll.get_transactions_by_user(current_user.user_id)
+            display_loans_paginated(loans)
+            pause()
+
+        elif choice == '0':
+            print("\nĐang đăng xuất...")
+            break
+        else:
+            print("\n[!] Lựa chọn không hợp lệ.")
+            pause()
