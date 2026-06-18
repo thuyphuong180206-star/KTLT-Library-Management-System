@@ -23,54 +23,87 @@ Các hàm:
 Import bởi: interface.account_manager, interface.menu
 """
 import re
+from typing import Optional
 
-def validate_user_id(user_id: str) -> str | None:
+# ==========================================
+# 1. VALIDATOR CHO NGƯỜI DÙNG & TÀI KHOẢN
+# ==========================================
+
+def validate_user_id(user_id: str) -> Optional[str]:
     """
     Phân loại mã định danh bằng Regex.
-    Trả về: 'student' (nếu là MSSV), 'lecturer' (nếu là Mã GV), hoặc None nếu sai định dạng.
+    Trả về: 'student' (MSSV), 'lecturer' (Mã GV), hoặc None nếu sai.
     """
     user_id = user_id.strip()
-    
-    # Regex cho Sinh viên: Chuỗi có đúng 8 hoặc 9 chữ số (VD: 20211234)
-    if re.match(r"^\d{8,9}$", user_id):
+    if re.fullmatch(r"\d{8,9}", user_id):
         return "student"
-        
-    # Regex cho Giảng viên: Bắt đầu bằng 002. tiếp theo 3 số, dấu . và 5 số (VD: 002.123.45678)
-    if re.match(r"^002\.\d{3}\.\d{5}$", user_id):
+    if re.fullmatch(r"002\.\d{3}\.\d{5}", user_id):
         return "lecturer"
         
-    # Nếu không khớp cái nào ở trên -> Báo lỗi
     print("\n[!] Lỗi: Định dạng mã độc giả không hợp lệ.")
     print("    - Sinh viên: Chỉ gồm 8 đến 9 chữ số (Ví dụ: 20231234).")
     print("    - Giảng viên: Phải theo định dạng 002.xxx.xxxxx (Ví dụ: 002.123.45678).")
     return None
 
+def validate_password(password: str) -> bool:
+    """Kiểm tra độ mạnh của mật khẩu (tối thiểu 6 ký tự)."""
+    if len(password.strip()) < 6:
+        print("\n[!] Lỗi: Mật khẩu quá ngắn. Cần tối thiểu 6 ký tự để đảm bảo an toàn.")
+        return False
+    return True
+
+def validate_person_name(name: str) -> bool:
+    """
+    Kiểm tra tên người (Tác giả / Tên độc giả).
+    Chỉ cho phép chữ cái (hỗ trợ Tiếng Việt) và khoảng trắng, giới hạn 2-50 ký tự.
+    """
+    name = name.strip()
+    # Regex hỗ trợ chữ cái tiếng Việt và khoảng trắng
+    if not re.fullmatch(r"^[A-Za-zÀ-ỹ\s]{2,50}$", name):
+        print("\n[!] Lỗi: Tên/Tác giả chỉ được chứa chữ cái và khoảng trắng (2-50 ký tự).")
+        return False
+    return True
+
+# ==========================================
+# 2. VALIDATOR CHO SÁCH & KHO
+# ==========================================
+
+def validate_book_id(book_id: str) -> bool:
+    """
+    Kiểm tra định dạng Mã sách.
+    Quy tắc: Phải bắt đầu bằng chữ 'B' (hoặc 'b') theo sau là 3-4 chữ số (VD: B001, B1024).
+    """
+    book_id = book_id.strip().upper()
+    if not re.fullmatch(r"B\d{3,4}", book_id):
+        print("\n[!] Lỗi: Mã sách phải bắt đầu bằng chữ 'B' kèm theo 3-4 chữ số (Ví dụ: B001, B102).")
+        return False
+    return True
+
+def validate_quantity(qty_str: str) -> bool:
+    """Kiểm tra chuỗi số lượng có phải là số nguyên dương hay không."""
+    qty_str = str(qty_str).strip()
+    if qty_str.isdigit() and int(qty_str) >= 0:
+        return True
+    print("\n[!] Lỗi: Số lượng phải là một số nguyên dương không âm.")
+    return False
+
+# ==========================================
+# 3. VALIDATOR CHUNG (GENERAL)
+# ==========================================
+
 def validate_non_empty(fields: dict) -> bool:
-    """
-    Kiểm tra một tập hợp các trường dữ liệu xem có bị rỗng không.
-    Input: dict với key là tên trường, value là giá trị người dùng nhập.
-    """
+    """Kiểm tra một tập hợp các trường dữ liệu xem có bị rỗng không."""
     for key, value in fields.items():
         if not str(value).strip():
             print(f"\n[!] Lỗi: Trường dữ liệu '{key}' không được bỏ trống.")
             return False
     return True
 
-def validate_quantity(qty_str: str) -> bool:
+def validate_text_length(text: str, field_name: str, max_len: int = 50) -> bool:
     """
-    Kiểm tra chuỗi số lượng có phải là số nguyên dương hay không.
+    Giới hạn độ dài chuỗi để tránh việc nhập rác làm vỡ giao diện ASCII.
     """
-    qty_str = str(qty_str).strip()
-    # isdigit() đảm bảo nó là số nguyên không âm (không chứa chữ hay dấu trừ)
-    if qty_str.isdigit() and int(qty_str) > 0:
-        return True
-    return False
-
-def validate_password(password: str) -> bool:
-    """
-    Kiểm tra độ mạnh của mật khẩu (tối thiểu 6 ký tự).
-    """
-    if len(password.strip()) < 6:
-        print("\n[!] Lỗi: Mật khẩu quá ngắn. Cần tối thiểu 6 ký tự để đảm bảo an toàn.")
+    if len(text.strip()) > max_len:
+        print(f"\n[!] Lỗi: {field_name} quá dài (Tối đa {max_len} ký tự).")
         return False
     return True
