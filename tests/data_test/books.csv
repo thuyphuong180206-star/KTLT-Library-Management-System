@@ -1,0 +1,8 @@
+book_id,title,author,genre,publisher,quantity,status,borrow_count
+B001,Lap Trinh Python Co Ban,Nguyen Van A,Cong Nghe,NXB Giao Duc,5,active,10
+B002,Java Tu Dau Den Cuoi,Tran Thi B,Cong Nghe,NXB Tre,3,active,4
+B003,Doc Than Tu Trong Khoanh Khac,Nguyen Nhat Anh,Van Hoc,NXB Kim Dong,2,active,7
+B004,Harry Potter Va Hon Da Phap Thuat,J.K. Rowling,Thieu Nhi,NXB Tre,4,active,20
+B005,Giai Tich 1,Nguyen Van A,Toan Hoc,NXB Giao Duc,6,active,1
+B006,python cho nguoi moi bat dau,Pham Van C,Cong Nghe,NXB Bach Khoa,1,inactive,0
+B007,Sach Het Hang,Vo Van D,Cong Nghe,NXB Tre,0,active,0

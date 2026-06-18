@@ -1,0 +1,7 @@
+loan_id,user_id,book_id,borrow_date,due_date,return_date,status,overdue_fee
+L001,U001,B001,2020-01-01,2099-01-01,,borrowing,0.0
+L002,U002,B005,2020-01-01,2020-01-15,,overdue,0.0
+L003,U003,B002,2020-01-01,2099-01-01,,borrowing,0.0
+L004,U003,B003,2020-01-01,2099-01-01,,borrowing,0.0
+L005,U003,B004,2020-01-01,2099-01-01,,borrowing,0.0
+L006,U001,B001,2019-01-01,2019-01-15,2019-01-20,returned,10000.0
