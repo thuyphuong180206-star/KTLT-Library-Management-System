@@ -1,4 +1,3 @@
-# Lưu danh sách tài khoản hệ thống (Admin / Reader)
 user_id,fullname,password,role,reader_type
 admin,Admin Thu Vien,123456,admin,
 202419090,Nguyen Van An,123456,user,student
