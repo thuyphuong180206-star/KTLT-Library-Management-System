@@ -171,7 +171,7 @@ def admin_manage_books(hash_map, dll, user_array, waiting_queue):
             print("\n📚 THÊM SÁCH MỚI")
             
             # 1. Nhập và kiểm tra Mã sách
-            b_id = input("Mã sách: ").strip()
+            b_id = input("Mã sách: ").strip().upper()
             if not validator.validate_book_id(b_id):
                 pause(); continue
                 
@@ -213,7 +213,7 @@ def admin_manage_books(hash_map, dll, user_array, waiting_queue):
 
         elif choice == '2':
             print("\n✏️ SỬA THÔNG TIN SÁCH")
-            b_id = input("Nhập Mã sách cần sửa: ").strip()
+            b_id = input("Nhập Mã sách cần sửa: ").strip().upper()
             book = hash_map.search(b_id)
             if not book:
                 print("[!] Không tìm thấy sách.")
@@ -239,7 +239,7 @@ def admin_manage_books(hash_map, dll, user_array, waiting_queue):
 
         elif choice == '3':
             print("\n🗑️ XÓA SÁCH")
-            b_id = input("Nhập Mã sách cần xóa: ").strip()
+            b_id = input("Nhập Mã sách cần xóa: ").strip().upper()
             
             if loan_manager.is_book_on_loan(dll, b_id):
                 print("[!] Từ chối xóa: Sách này đang có người mượn hoặc nợ quá hạn.")
@@ -302,8 +302,8 @@ def admin_manage_loans(hash_map, dll, user_array, waiting_queue):
                     continue  # Bỏ qua không gọi process_borrow nữa
             # ------------------------------------------
 
-            # Gọi thẳng hàm với đủ 6 tham số (không có try-except)
-            success, msg = loan_manager.process_borrow(hash_map, dll, user_array, waiting_queue, u_id, b_id)
+            # Giả định process_borrow định nghĩa waiting_queue ở cuối
+            success, msg = loan_manager.process_borrow(hash_map, dll, user_array, u_id, b_id, waiting_queue)
             
             print(f"\nHệ thống: {msg}")
             if success: _trigger_save(hash_map, dll, user_array, waiting_queue)
@@ -314,8 +314,8 @@ def admin_manage_loans(hash_map, dll, user_array, waiting_queue):
             u_id = input("Mã độc giả: ").strip()
             b_id = input("Mã sách: ").strip().upper()
             
-            # Gọi thẳng hàm với đủ 6 tham số (không có try-except)
-            success, msg, fee = loan_manager.process_return(hash_map, dll, user_array, waiting_queue, u_id, b_id)    
+            # Giả định process_return định nghĩa waiting_queue ở cuối
+            success, msg, fee = loan_manager.process_return(hash_map, dll, user_array, u_id, b_id, waiting_queue)    
             
             print(f"\nHệ thống: {msg}")
             if fee > 0: print(f"⚠️ THU PHẠT: {fee} VNĐ (Trễ hạn)")
