@@ -1,45 +1,49 @@
 Library-Management-System/              # THƯ MỤC GỐC CỦA TOÀN BỘ DỰ ÁN
 │
 ├── data/                               # Thư mục chứa các tệp cơ sở dữ liệu phẳng vật lý
-│   ├── books.csv                       # Lưu kho sách mở rộng (Đã cấu trúc lại thành 10 trường)
-│   ├── users.csv                       # Lưu danh sách tài khoản hệ thống (Admin / Reader)
-│   ├── loans.csv                       # Lưu lịch sử tất cả giao dịch mượn/trả sách
-│   └── system_error.log                # Tệp ghi log ngoại lệ I/O (Chốt chặn lập trình phòng ngừa)
+│   ├── books.csv                       # Lưu danh mục sách (8 trường: book_id, title, author, genre, publisher, quantity, status, borrow_count)
+│   ├── users.csv                       # Lưu danh sách tài khoản (Admin / Sinh viên / Giảng viên)
+│   ├── loans.csv                       # Lưu lịch sử toàn bộ giao dịch mượn/trả sách
+│   ├── waiting_requests.csv            # Lưu danh sách yêu cầu chờ mượn khi sách hết kho
+│   └── system_error.log                # Tệp ghi log lỗi I/O (tự tạo bởi data_processor)
 │
 ├── source_code/                        # THƯ MỤC CHỨA TOÀN BỘ MÃ NGUỒN CHÍNH (.py)
 │   ├── __init__.py                     # File rỗng định danh Python Package cho source_code/
-│   ├── main.py                         # Điểm khởi chạy hệ thống (System Entry Point & Bootstrapper)
+│   ├── main.py                         # Điểm khởi chạy hệ thống: load dữ liệu, đăng nhập, phân luồng menu
 │   │
 │   ├── storage/                        # TẦNG LƯU TRỮ DỮ LIỆU (STORAGE LAYER)
 │   │   ├── __init__.py                 # Khai báo package nội bộ storage
-│   │   └── data_processor.py           # Logic Đọc/Ghi file CSV, kiểm soát ngoại lệ và tự phục hồi
+│   │   └── data_processor.py           # Đọc/Ghi 4 file CSV, xử lý lỗi I/O, tự phục hồi khi mất file
 │   │
 │   ├── objects/                        # TẦNG THỰC THỂ ĐỐI TƯỢNG (OBJECT LAYER)
 │   │   ├── __init__.py                 # Khai báo package nội bộ objects
-│   │   ├── books.py                    # Định nghĩa lớp Book (Đóng gói private __, Getters/Setters, to_dict/from_dict)
-│   │   ├── users.py                    # Định nghĩa lớp User (Mô hình hóa tài khoản, phân quyền, mức ưu tiên)
-│   │   └── loans.py                    # Định nghĩa lớp Loan (Mô hình hóa phiếu mượn/trả, lưu vết tiền phạt)
+│   │   ├── books.py                    # Lớp Book: thông tin đầu sách, to_dict/from_dict
+│   │   ├── users.py                    # Lớp User: tài khoản, phân quyền, hạn mức mượn theo SV/GV
+│   │   ├── loans.py                    # Lớp Loan: phiếu mượn/trả, trạng thái, tiền phạt
+│   │   └── requests.py                 # Lớp BorrowRequest: yêu cầu chờ mượn khi sách hết kho
 │   │
 │   ├── structure/                      # TẦNG CẤU TRÚC DỮ LIỆU LÕI VẬN HÀNH TRÊN RAM (STRUCTURE LAYER)
 │   │   ├── __init__.py                 # Khai báo package nội bộ structure
-│   │   ├── hash_map.py                 # Cài đặt lớp BookHashMap (Separate Chaining) tra cứu sách O(1)
-│   │   ├── doubly_linked_list.py       # Cài đặt lớp TransactionList (DLL) lưu lịch sử giao dịch O(1)
-│   │   └── priority_queue.py           # Cài đặt lớp PriorityQueue (Max-Heap nhị phân) thống kê sách phổ biến O(log N)
+│   │   ├── hash_map.py                 # Lớp BookHashMap (Separate Chaining) — tra cứu sách O(1)
+│   │   ├── doubly_linked_list.py       # Lớp TransactionList (DLL) — lưu lịch sử giao dịch O(1)
+│   │   ├── priority_queue.py           # Lớp PriorityQueue (Max-Heap) — thống kê top 5 sách O(log N)
+│   │   ├── user_array.py               # Lớp UserArray (Mảng tự quản lý) — lưu danh sách bạn đọc
+│   │   └── waiting_queue.py            # Lớp WaitingQueue (FIFO) — hàng chờ mượn khi sách hết kho
 │   │
 │   ├── logic/                          # TẦNG ĐIỀU PHỐI NGHIỆP VỤ VÀ THUẬT TOÁN (LOGIC LAYER)
 │   │   ├── __init__.py                 # Khai báo package nội bộ logic
-│   │   ├── search.py                   # Cài đặt tìm kiếm chính xác O(1) và tìm kiếm tương đối O(N)
-│   │   ├── sort.py                     # Cài đặt giải thuật Quick Sort đệ quy đa tiêu chí động tự thân
-│   │   └── loan_manager.py             # Logic mượn/trả, công thức phạt lũy tiến, điều tiết hàng chờ Max-Heap
+│   │   ├── search.py                   # Tìm kiếm sách: chính xác O(1) theo mã, tương đối O(N) theo tên/tác giả/thể loại
+│   │   ├── sort.py                     # Quick Sort sắp xếp danh sách sách A-Z theo tên để hiển thị
+│   │   ├── loan_manager.py             # Nghiệp vụ mượn/trả, kiểm tra hạn mức, tính tiền phạt, quản lý hàng chờ
+│   │   └── report.py                   # Báo cáo: sách đang mượn, sách quá hạn, top 5 sách mượn nhiều nhất
 │   │
 │   └── interface/                      # TẦNG GIAO DIỆN NGƯỜI DÙNG CONSOLE (INTERFACE LAYER)
 │       ├── __init__.py                 # Khai báo package nội bộ interface
-│       ├── menu.py                     # Vòng lặp while True điều hướng chính, vẽ khung ASCII Table (.ljust/.rjust)
-│       ├── account_manager.py          # Biểu mẫu dòng lệnh phục vụ Đăng nhập / Đăng ký tài khoản
-│       └── validator.py                # Màng lọc dữ liệu thô (chuỗi nhập từ bàn phím), Regex kiểm tra cú pháp ĐKCB
+│       ├── menu.py                     # Vòng lặp while True: menu Admin và menu User, hiển thị bảng ASCII, phân trang
+│       ├── account_manager.py          # Đăng nhập hệ thống và tạo tài khoản bạn đọc mới
+│       └── validator.py                # Xác thực dữ liệu đầu vào: mã SV/GV, số lượng, mật khẩu, trường rỗng
 │
-└── tests/                              # TẦNG KIỂM THỬ TỰ ĐỘNG ĐỘC LẬP (UNIT TEST LAYER)
+└── tests/                              # TẦNG KIỂM THỬ TỰ ĐỘNG (UNIT TEST LAYER)
     ├── __init__.py                     # File rỗng định danh package tests/
-    ├── test_sort.py                    # Kịch bản unittest xác thực giải thuật Quick Sort đa tiêu chí trùng NXB
-    └── test_validator.py               # Kịch bản unittest xác thực bộ lọc validator chặn dữ liệu bẩn đầu vào
-
+    ├── test_sort.py                    # Kiểm thử Quick Sort: danh sách rỗng, một phần tử, nhiều phần tử, trùng tên
+    └── test_loan.py                    # Kiểm thử nghiệp vụ: mượn hợp lệ, hết kho, quá hạn, tính tiền phạt
