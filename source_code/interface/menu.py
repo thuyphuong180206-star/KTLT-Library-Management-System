@@ -156,23 +156,42 @@ def admin_manage_books(hash_map, dll, user_array, waiting_queue):
 
         if choice == '1':
             print("\n📚 THÊM SÁCH MỚI")
+            
+            # 1. Nhập và kiểm tra Mã sách
             b_id = input("Mã sách: ").strip()
+            if not validator.validate_book_id(b_id):
+                pause(); continue
+                
             if hash_map.search(b_id):
                 print("[!] Lỗi: Mã sách đã tồn tại.")
                 pause(); continue
                 
+            # 2. Nhập và kiểm tra Tên sách
             title = input("Tên sách: ").strip()
+            if not validator.validate_text_length(title, "Tên sách", 50):
+                pause(); continue
+                
+            # 3. Nhập và kiểm tra Tác giả
             author = input("Tác giả: ").strip()
+            if not validator.validate_person_name(author):
+                pause(); continue
+                
+            # 4. Nhập và kiểm tra Thể loại
             genre = input("Thể loại: ").strip()
+            if not validator.validate_text_length(genre, "Thể loại", 30):
+                pause(); continue
+                
             publisher = input("Nhà xuất bản: ").strip()
             qty_str = input("Số lượng: ").strip()
 
+            # 5. Kiểm tra rỗng và số lượng (Logic cũ giữ nguyên)
             if not validator.validate_non_empty({"id": b_id, "title": title, "author": author}):
                 pause(); continue
+                
             if not validator.validate_quantity(qty_str):
-                print("[!] Lỗi: Số lượng phải là số nguyên > 0.")
                 pause(); continue
 
+            # 6. Lưu sách
             new_book = Book(b_id, title, author, genre, publisher, int(qty_str), "active", 0)
             hash_map.insert(b_id, new_book)
             _trigger_save(hash_map, dll, user_array, waiting_queue)
@@ -236,8 +255,9 @@ def admin_manage_books(hash_map, dll, user_array, waiting_queue):
 
         elif choice == '5':
             print("\n🔍 TÌM KIẾM SÁCH")
-            keyword = input("Nhập từ khóa (Tên/Tác giả/Thể loại): ").strip()
-            res_title = search.search_books_by_keyword(hash_map, keyword)
+            keyword = input("Nhập từ khóa (Tên sách): ").strip()
+            # Gọi đúng tên hàm search_by_title
+            res_title = search.search_by_title(hash_map, keyword)
             display_books_paginated(res_title)
             pause()
 
@@ -406,8 +426,8 @@ def run_user_menu(hash_map, dll, user_array, waiting_queue, current_user):
 
         if choice == '1':
             print("\n🔍 TÌM KIẾM SÁCH")
-            keyword = input("Nhập từ khóa: ").strip()
-            res = search.search_books_by_keyword(hash_map, keyword)
+            keyword = input("Nhập từ khóa (Tên sách): ").strip()
+            res = search.search_by_title(hash_map, keyword)
             display_books_paginated(res)
             pause()
 
