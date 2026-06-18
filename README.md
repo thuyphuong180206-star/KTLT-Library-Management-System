@@ -24,10 +24,11 @@ Library-Management-System/              # THƯ MỤC GỐC CỦA TOÀN BỘ DỰ
 │   │
 │   ├── structure/                      # TẦNG CẤU TRÚC DỮ LIỆU LÕI VẬN HÀNH TRÊN RAM (STRUCTURE LAYER)
 │   │   ├── __init__.py                 # Khai báo package nội bộ structure
+│   │   ├── custom_list.py              # Lớp CustomList — mảng động tự cài, nền tảng dùng chung toàn hệ thống
 │   │   ├── hash_map.py                 # Lớp BookHashMap (Separate Chaining) — tra cứu sách O(1)
 │   │   ├── doubly_linked_list.py       # Lớp TransactionList (DLL) — lưu lịch sử giao dịch O(1)
 │   │   ├── priority_queue.py           # Lớp PriorityQueue (Max-Heap) — thống kê top 5 sách O(log N)
-│   │   ├── user_array.py               # Lớp UserArray (Mảng tự quản lý) — lưu danh sách bạn đọc
+│   │   ├── user_array.py               # Lớp UserArray (bọc quanh CustomList) — lưu danh sách bạn đọc
 │   │   └── waiting_queue.py            # Lớp WaitingQueue (FIFO) — hàng chờ mượn khi sách hết kho
 │   │
 │   ├── logic/                          # TẦNG ĐIỀU PHỐI NGHIỆP VỤ VÀ THUẬT TOÁN (LOGIC LAYER)
@@ -41,9 +42,35 @@ Library-Management-System/              # THƯ MỤC GỐC CỦA TOÀN BỘ DỰ
 │       ├── __init__.py                 # Khai báo package nội bộ interface
 │       ├── menu.py                     # Vòng lặp while True: menu Admin và menu User, hiển thị bảng ASCII, phân trang
 │       ├── account_manager.py          # Đăng nhập hệ thống và tạo tài khoản bạn đọc mới
-│       └── validator.py                # Xác thực dữ liệu đầu vào: mã SV/GV, số lượng, mật khẩu, trường rỗng
+│       └── validator.py                # Xác thực đầu vào: mã SV/GV, mã sách, tên, mật khẩu, số lượng, độ dài chuỗi
 │
 └── tests/                              # TẦNG KIỂM THỬ TỰ ĐỘNG (UNIT TEST LAYER)
     ├── __init__.py                     # File rỗng định danh package tests/
-    ├── test_sort.py                    # Kiểm thử Quick Sort: danh sách rỗng, một phần tử, nhiều phần tử, trùng tên
-    └── test_loan.py                    # Kiểm thử nghiệp vụ: mượn hợp lệ, hết kho, quá hạn, tính tiền phạt
+    ├── data_loader.py                  # Nạp dữ liệu mẫu chung từ data_test/ thành CustomList/HashMap/... cho mọi test
+    ├── data_test/                      # Dữ liệu mẫu CSV riêng cho test, tách biệt hoàn toàn với data/ thật
+    │   ├── books.csv                   # 7 sách mẫu, có cả sách inactive và hết hàng để test đủ nhánh
+    │   ├── users.csv                   # 4 người dùng mẫu (sinh viên), không có U999 để test "không tồn tại"
+    │   ├── loans.csv                   # 6 phiếu mượn mẫu: đang mượn, quá hạn, đã trả
+    │   └── waiting_requests.csv        # 3 yêu cầu chờ mượn mẫu
+    ├── test_loan_manager.py            # Kiểm thử mượn/trả, tính phí quá hạn, hàng chờ ưu tiên (24 test)
+    ├── test_search.py                  # Kiểm thử tìm theo mã/tên/tác giả/thể loại (17 test)
+    ├── test_report.py                  # Kiểm thử báo cáo: đang mượn, quá hạn, top 5 sách (13 test)
+    ├── test_sort.py                    # Kiểm thử Quick Sort: rỗng, một phần tử, trùng tên, không đổi danh sách gốc (9 test)
+    └── test_validator.py               # Kiểm thử toàn bộ 7 hàm xác thực đầu vào (30 test)
+
+---
+
+## Hướng dẫn chạy test
+
+Tại thư mục gốc dự án, chạy:
+
+```
+$env:PYTHONIOENCODING="utf-8"; python -m unittest discover -s tests -t .
+```
+
+- `python -m unittest discover` — tự tìm và chạy toàn bộ file `test_*.py` trong `tests/`.
+- `-s tests` — thư mục bắt đầu tìm test.
+- `-t .` — gốc dự án là thư mục hiện tại, để import đúng `source_code/...`.
+- `$env:PYTHONIOENCODING="utf-8"` — bắt buộc trên Windows, tránh lỗi `UnicodeEncodeError` do có in tiếng Việt có dấu.
+
+Kết quả mong đợi: `Ran 93 tests in ...s` và `OK`. Nếu có dòng `FAILED`/`ERROR`, đọc kỹ tên test và thông báo lỗi kèm theo để xác định đúng hàm bị sai.
