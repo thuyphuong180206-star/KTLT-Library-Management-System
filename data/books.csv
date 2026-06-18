@@ -1,4 +1,3 @@
-# Lưu kho sách mở rộng (Đã cấu trúc lại thành 10 trường)
 book_id,title,author,genre,publisher,quantity,status,borrow_count
 B001,Lap trinh Python co ban,Nguyen Van An,Cong nghe,NXB Khoa hoc Ky thuat,2,active,15
 B002,Cau truc du lieu va Giai thuat,Tran Thi Binh,Cong nghe,NXB Dai hoc Quoc gia,1,active,10
