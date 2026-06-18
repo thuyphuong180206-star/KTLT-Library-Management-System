@@ -49,8 +49,10 @@ Các hàm:
           test (vd. trả sau due_date để kiểm tra tính tiền phạt).
         Trả về: (bool, str, float) — (thành công, thông báo, tiền phạt)
 
-    - calculate_overdue_fee(loan, user)
+    - calculate_overdue_fee(loan, user, check_date=None)
         Tính tiền phạt tạm tính cho một phiếu CHƯA trả (status còn "borrowing"/"overdue").
+        check_date (tùy chọn): ngày dùng để so sánh với due_date, mặc định None →
+          dùng ngày hệ thống. Cho phép giả định một ngày cụ thể khi viết test.
         Dùng khi: hiển thị phí quá hạn ước tính real-time cho đọc giả/admin xem
         (vd. report.get_overdue_loans) — process_return tự tính phạt riêng tại thời
         điểm trả, không gọi lại hàm này.
@@ -169,14 +171,14 @@ def process_return(hash_map, dll, user_array, waiting_queue, user_id, book_id, r
     return True, "Tra sach thanh cong.", fee
 
 
-def calculate_overdue_fee(loan, user):
+def calculate_overdue_fee(loan, user, check_date=None):
     """Tính tiền phạt tạm tính cho phiếu chưa trả. Trả về float (VNĐ)."""
     if loan.status not in ("borrowing", "overdue") or loan.due_date is None:
         return 0.0
-    today = date.today()
-    if today <= loan.due_date:
+    check_date = check_date or date.today()
+    if check_date <= loan.due_date:
         return 0.0
-    days_overdue = (today - loan.due_date).days
+    days_overdue = (check_date - loan.due_date).days
     return days_overdue * OVERDUE_FEE.get(user.reader_type, 0)
 
 
