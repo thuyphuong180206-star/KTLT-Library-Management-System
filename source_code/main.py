@@ -73,7 +73,7 @@ def main():
             continue
             
         # Bước 3: Phân luồng điều hướng (Nhớ truyền thêm waiting_queue)
-        if current_user.role == "admin":
+        if current_user.is_admin():
             menu.run_admin_menu(hash_map, dll, user_array, waiting_queue)
         else:
             menu.run_user_menu(hash_map, dll, user_array, waiting_queue, current_user)
