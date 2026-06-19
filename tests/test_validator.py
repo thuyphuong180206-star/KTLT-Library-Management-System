@@ -53,13 +53,13 @@ class ValidatorTestCase(unittest.TestCase):
     # ------------------------------------------------------------------ #
 
     def test_validate_user_id_student_8_digits(self):
-        self.assertEqual(validator.validate_user_id("20211234"), "student")
+        self.assertEqual(validator.validate_user_id("20211001"), "student")
 
     def test_validate_user_id_student_9_digits(self):
         self.assertEqual(validator.validate_user_id("202112345"), "student")
 
     def test_validate_user_id_lecturer(self):
-        self.assertEqual(validator.validate_user_id("002.123.45678"), "lecturer")
+        self.assertEqual(validator.validate_user_id("002.456.78901"), "lecturer")
 
     def test_validate_user_id_invalid_format(self):
         self.assertIsNone(validator.validate_user_id("abc123"))
@@ -68,7 +68,7 @@ class ValidatorTestCase(unittest.TestCase):
         self.assertIsNone(validator.validate_user_id("1234567"))
 
     def test_validate_user_id_strips_whitespace(self):
-        self.assertEqual(validator.validate_user_id("  20211234  "), "student")
+        self.assertEqual(validator.validate_user_id("  20211001  "), "student")
 
     # ------------------------------------------------------------------ #
     # validate_non_empty

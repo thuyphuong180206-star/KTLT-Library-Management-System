@@ -1,5 +1,5 @@
 user_id,fullname,password,role,reader_type
-U001,Nguyen Van Mot,pass123,user,student
-U002,Tran Thi Hai,pass123,user,student
-U003,Le Van Ba,pass123,user,student
-U004,Pham Thi Tu,pass123,user,student
+20211001,Nguyen Van Mot,pass123,user,student
+002.456.78901,Tran Thi Hai,pass123,user,lecturer
+20211003,Le Van Ba,pass123,user,student
+20211004,Pham Thi Tu,pass123,user,student
