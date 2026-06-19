@@ -231,9 +231,19 @@ def admin_manage_books(hash_map, dll, user_array, waiting_queue):
 
         elif choice == '5':
             print("\n🔍 TÌM KIẾM SÁCH")
-            keyword = input("Nhập từ khóa (Tên sách): ").strip()
-            res_title = search.search_by_title(hash_map, keyword)
-            display_books_paginated(res_title)
+            print("1. Theo Tên sách | 2. Theo Tác giả | 3. Theo Thể loại | 4. Theo NXB")
+            sub_choice = input("👉 Chọn tiêu chí: ").strip()
+            keyword = input("Nhập từ khóa: ").strip()
+            
+            books_all = hash_map.get_all_books() # Giả sử bạn có hàm lấy tất cả
+            results = []
+            
+            if sub_choice == '1': results = [b for b in books_all if keyword.lower() in b.title.lower()]
+            elif sub_choice == '2': results = [b for b in books_all if keyword.lower() in b.author.lower()]
+            elif sub_choice == '3': results = [b for b in books_all if keyword.lower() in b.genre.lower()]
+            elif sub_choice == '4': results = [b for b in books_all if keyword.lower() in b.publisher.lower()]
+            
+            display_books_paginated(results)
             pause()
 
         elif choice == '0':
@@ -245,6 +255,7 @@ def admin_manage_loans(hash_map, dll, user_array, waiting_queue):
         print("  1. Xử lý Mượn sách")
         print("  2. Xử lý Trả sách")
         print("  3. Xem toàn bộ lịch sử giao dịch")
+        print("  4. Xem danh sách hàng đợi")
         print("  0. Quay lại")
         print("-" * 80)
         choice = input("👉 Chọn tác vụ: ").strip()
@@ -292,6 +303,16 @@ def admin_manage_loans(hash_map, dll, user_array, waiting_queue):
             print("\n📜 LỊCH SỬ GIAO DỊCH TOÀN HỆ THỐNG")
             loans = dll.get_all_transactions()
             display_loans_paginated(loans)
+            pause()
+
+        elif choice == '4':
+            print("\n📋 DANH SÁCH HÀNG ĐỢI")
+            queue_list = waiting_queue.to_list()
+            if not queue_list:
+                print("Hàng đợi đang trống.")
+            else:
+                for req in queue_list:
+                    print(f" - User: {req.user_id} | Sách: {req.book_id} | Ngày: {req.request_date}")
             pause()
 
         elif choice == '0':
@@ -440,12 +461,14 @@ def run_user_menu(hash_map, dll, user_array, waiting_queue, current_user):
             pause()
 
         elif choice == '4':
-            print("\n💸 PHÍ PHẠT TẠM TÍNH TRỄ HẠN")
+            print("\n💸 PHÍ PHẠT TẠM TÍNH")
             loans = dll.get_transactions_by_user(current_user.user_id)
-            total_fee = sum(l.overdue_fee for l in loans if l.status == "overdue")
-            print(f"Tổng tiền phạt hiện tại của bạn là: {int(total_fee)} VNĐ")
-            if total_fee == 0:
-                print("Tuyệt vời! Bạn không có khoản phạt nào.")
+            total_fee = 0
+            for l in loans:
+                if l.status == "overdue":
+                    fee = loan_manager.calculate_overdue_fee(l, current_user)
+                    total_fee += fee
+            print(f"Tổng tiền phạt hiện tại: {int(total_fee)} VNĐ")
             pause()
 
         elif choice == '5':
