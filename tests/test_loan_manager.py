@@ -72,7 +72,7 @@ class LoanManagerTestCase(unittest.TestCase):
 
     def test_borrow_success(self):
         success, msg = loan_manager.process_borrow(
-            self.hash_map, self.dll, self.user_array, "20211004", "B005", self.waiting_queue, borrow_date=date(2024, 1, 1)
+            self.hash_map, self.dll, self.user_array, "20211004", "B005", borrow_date=date(2024, 1, 1)
         )
         self.assertTrue(success)
         book = self.hash_map.search("B005")
@@ -82,50 +82,50 @@ class LoanManagerTestCase(unittest.TestCase):
 
     def test_borrow_user_not_found(self):
         success, msg = loan_manager.process_borrow(
-            self.hash_map, self.dll, self.user_array, "20219999", "B001", self.waiting_queue, borrow_date=date(2024, 1, 1)
+            self.hash_map, self.dll, self.user_array, "20219999", "B001", borrow_date=date(2024, 1, 1)
         )
         self.assertFalse(success)
 
     def test_borrow_book_not_found(self):
         success, msg = loan_manager.process_borrow(
-            self.hash_map, self.dll, self.user_array, "20211004", "B999", self.waiting_queue, borrow_date=date(2024, 1, 1)
+            self.hash_map, self.dll, self.user_array, "20211004", "B999", borrow_date=date(2024, 1, 1)
         )
         self.assertFalse(success)
 
     def test_borrow_overdue_debt(self):
         success, msg = loan_manager.process_borrow(
-            self.hash_map, self.dll, self.user_array, "002.456.78901", "B001", self.waiting_queue, borrow_date=date(2024, 1, 1)
+            self.hash_map, self.dll, self.user_array, "002.456.78901", "B001", borrow_date=date(2024, 1, 1)
         )
         self.assertFalse(success)
 
     def test_borrow_exceed_limit(self):
         success, msg = loan_manager.process_borrow(
-            self.hash_map, self.dll, self.user_array, "20211003", "B001", self.waiting_queue, borrow_date=date(2024, 1, 1)
+            self.hash_map, self.dll, self.user_array, "20211003", "B001", borrow_date=date(2024, 1, 1)
         )
         self.assertFalse(success)
 
     def test_borrow_already_borrowing_same_book(self):
         success, msg = loan_manager.process_borrow(
-            self.hash_map, self.dll, self.user_array, "20211001", "B001", self.waiting_queue, borrow_date=date(2024, 1, 1)
+            self.hash_map, self.dll, self.user_array, "20211001", "B001", borrow_date=date(2024, 1, 1)
         )
         self.assertFalse(success)
 
     def test_borrow_inactive_book(self):
         success, msg = loan_manager.process_borrow(
-            self.hash_map, self.dll, self.user_array, "20211004", "B006", self.waiting_queue, borrow_date=date(2024, 1, 1)
+            self.hash_map, self.dll, self.user_array, "20211004", "B006", borrow_date=date(2024, 1, 1)
         )
         self.assertFalse(success)
 
     def test_borrow_out_of_stock(self):
         success, msg = loan_manager.process_borrow(
-            self.hash_map, self.dll, self.user_array, "20211004", "B007", self.waiting_queue, borrow_date=date(2024, 1, 1)
+            self.hash_map, self.dll, self.user_array, "20211004", "B007", borrow_date=date(2024, 1, 1)
         )
         self.assertFalse(success)
 
     def test_borrow_custom_date(self):
         custom_date = date(2025, 1, 1)
         success, msg = loan_manager.process_borrow(
-            self.hash_map, self.dll, self.user_array, "20211004", "B005", self.waiting_queue, borrow_date=custom_date
+            self.hash_map, self.dll, self.user_array, "20211004", "B005", borrow_date=custom_date
         )
         self.assertTrue(success)
         loan = self.dll.get_transactions_by_user("20211004")[0]

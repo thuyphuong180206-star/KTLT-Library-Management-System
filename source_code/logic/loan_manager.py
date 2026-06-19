@@ -85,7 +85,7 @@ from objects.requests import BorrowRequest
 OVERDUE_FEE = {"student": 2000, "lecturer": 1000}  # VNĐ/ngày
 
 
-def process_borrow(hash_map, dll, user_array, user_id, book_id, waiting_queue, borrow_date=None):
+def process_borrow(hash_map, dll, user_array, user_id, book_id, borrow_date=None):
     """Xử lý mượn sách theo đúng 7 bước kiểm tra. Trả về (bool, str)."""
     user = user_array.get_by_id(user_id)
     if user is None:
@@ -174,7 +174,7 @@ def serve_waiting_queue(hash_map, dll, user_array, waiting_queue, book_id, serve
         for request in waiting_queue.to_list():
             if request.book_id != book_id:
                 continue
-            success, _ = process_borrow(hash_map, dll, user_array, request.user_id, book_id, waiting_queue, borrow_date=serve_date)
+            success, _ = process_borrow(hash_map, dll, user_array, request.user_id, book_id, borrow_date=serve_date)
             if success:
                 waiting_queue.remove_match(lambda r: r.request_id == request.request_id)
                 served = True

@@ -270,8 +270,7 @@ def admin_manage_loans(hash_map, dll, user_array, waiting_queue):
                     print("Hệ thống: Đã hủy.")
                 pause(); continue 
 
-            # GỌI HÀM MƯỢN VỚI ĐỦ 6 THAM SỐ
-            success, msg = loan_manager.process_borrow(hash_map, dll, user_array, u_id, b_id, waiting_queue)
+            success, msg = loan_manager.process_borrow(hash_map, dll, user_array, u_id, b_id)
             
             print(f"\nHệ thống: {msg}")
             if success: _trigger_save(hash_map, dll, user_array, waiting_queue)
