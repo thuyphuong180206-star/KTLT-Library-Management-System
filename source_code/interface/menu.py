@@ -32,9 +32,9 @@ def pause():
 
 def _trigger_save(hash_map, dll, user_array, waiting_queue):
     """Lưu dữ liệu ngầm sau mỗi thao tác thay đổi trạng thái hệ thống."""
-    base_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+    base_dir = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
     data_dir = os.path.join(base_dir, "data")
-    
+
     # Đảm bảo thư mục data tồn tại
     if not os.path.exists(data_dir):
         os.makedirs(data_dir)
