@@ -163,7 +163,7 @@ def process_return(hash_map, dll, user_array, waiting_queue, user_id, book_id, r
     for request in waiting_queue.to_list():
         if request.book_id != book_id:
             continue
-        success, _ = process_borrow(hash_map, dll, user_array, request.user_id, book_id, borrow_date=return_date)
+        success, _ = process_borrow(hash_map, dll, user_array, request.user_id, book_id, waiting_queue, borrow_date=return_date)
         if success:
             waiting_queue.remove_match(lambda r: r.request_id == request.request_id)
             break
