@@ -159,16 +159,28 @@ def process_return(hash_map, dll, user_array, waiting_queue, user_id, book_id, r
     target_loan.overdue_fee = fee
     book.quantity += 1
 
-    # Uu tien nguoi doi lau nhat cho dung book_id nay, neu con du dieu kien muon
-    for request in waiting_queue.to_list():
-        if request.book_id != book_id:
-            continue
-        success, _ = process_borrow(hash_map, dll, user_array, request.user_id, book_id, waiting_queue, borrow_date=return_date)
-        if success:
-            waiting_queue.remove_match(lambda r: r.request_id == request.request_id)
-            break
+    serve_waiting_queue(hash_map, dll, user_array, waiting_queue, book_id, serve_date=return_date)
 
     return True, "Tra sach thanh cong.", fee
+
+
+def serve_waiting_queue(hash_map, dll, user_array, waiting_queue, book_id, serve_date=None):
+    """Uu tien nguoi doi lau nhat cho dung book_id nay, theo FIFO, cho den khi het
+    ton kho hoac het nguoi cho khop. Goi moi khi quantity cua mot sach tang len,
+    du la do tra sach hay do admin nhap them sach (sua thong tin sach)."""
+    book = hash_map.search(book_id)
+    while book is not None and book.quantity > 0:
+        served = False
+        for request in waiting_queue.to_list():
+            if request.book_id != book_id:
+                continue
+            success, _ = process_borrow(hash_map, dll, user_array, request.user_id, book_id, waiting_queue, borrow_date=serve_date)
+            if success:
+                waiting_queue.remove_match(lambda r: r.request_id == request.request_id)
+                served = True
+                break
+        if not served:
+            break
 
 
 def calculate_overdue_fee(loan, user, check_date=None):

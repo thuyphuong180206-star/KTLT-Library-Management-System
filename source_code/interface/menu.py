@@ -192,8 +192,11 @@ def admin_manage_books(hash_map, dll, user_array, waiting_queue):
                 else:
                     print("[!] Lỗi số lượng. Giữ nguyên giá trị cũ.")
 
+            old_qty = book.quantity
             book.title, book.author, book.quantity = title, author, qty
-            hash_map.insert(b_id, book) 
+            hash_map.insert(b_id, book)
+            if qty > old_qty:
+                loan_manager.serve_waiting_queue(hash_map, dll, user_array, waiting_queue, b_id)
             _trigger_save(hash_map, dll, user_array, waiting_queue)
             print("[✓] Cập nhật thành công!")
             pause()
