@@ -12,8 +12,6 @@ from interface import account_manager, menu
 
 def get_data_paths():
     """Hàm phụ trợ: Định vị hoặc tạo thư mục chứa file CSV an toàn trên mọi hệ điều hành."""
-    # Lưu ý: Nếu main.py nằm ở thư mục gốc, dùng 1 lần dirname. 
-    # Nếu main.py nằm trong folder con (vd: source_code/), giữ nguyên 2 lần dirname.
     base_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
     data_dir = os.path.join(base_dir, "data")
     
@@ -78,7 +76,6 @@ def main():
         else:
             menu.run_user_menu(hash_map, dll, user_array, waiting_queue, current_user)
             
-        # Chốt lưu thêm một lần nữa khi User/Admin đăng xuất cho chắc cốp
         data_processor.save_system_data(
             hash_map, dll, user_array, waiting_queue, 
             books_path, users_path, loans_path, waiting_path
