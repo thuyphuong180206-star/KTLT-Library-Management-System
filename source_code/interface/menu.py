@@ -59,21 +59,22 @@ def display_books_paginated(books):
 
     PAGE_SIZE = 10
     total = len(books)
-    w_id, w_title, w_author, w_genre, w_qty = 8, 30, 20, 15, 5
+    w_id, w_title, w_author, w_genre, w_pub, w_qty = 8, 22, 15, 10, 15, 5
 
-    separator = f"+{'-'*(w_id+2)}+{'-'*(w_title+2)}+{'-'*(w_author+2)}+{'-'*(w_genre+2)}+{'-'*(w_qty+2)}+"
+    separator = f"+{'-'*(w_id+2)}+{'-'*(w_title+2)}+{'-'*(w_author+2)}+{'-'*(w_genre+2)}+{'-'*(w_qty+2)}+{'-'*(w_qty+2)}+"
 
     for i in range(0, total, PAGE_SIZE):
         chunk = books[i:i + PAGE_SIZE]
         print(separator)
-        print(f"| {'Mã Sách'.ljust(w_id)} | {'Tên Sách'.ljust(w_title)} | {'Tác Giả'.ljust(w_author)} | {'Thể Loại'.ljust(w_genre)} | {'Kho'.rjust(w_qty)} |")
+        print(f"| {'Mã Sách'.ljust(w_id)} | {'Tên Sách'.ljust(w_title)} | {'Tác Giả'.ljust(w_author)} | {'Thể Loại'.ljust(w_genre)} | {'NXB'.ljust(w_pub)} | {'Kho'.rjust(w_qty)} |")
         print(separator)
         
         for b in chunk:
             title = (b.title[:w_title-3] + "...") if len(b.title) > w_title else b.title
             author = (b.author[:w_author-3] + "...") if len(b.author) > w_author else b.author
             genre = (b.genre[:w_genre-3] + "...") if len(b.genre) > w_genre else b.genre
-            print(f"| {b.book_id.ljust(w_id)} | {title.ljust(w_title)} | {author.ljust(w_author)} | {genre.ljust(w_genre)} | {str(b.quantity).rjust(w_qty)} |")
+            publisher = (b.publisher[:w_pub-3] + "...") if len(b.publisher) > w_pub else b.publisher
+            print(f"| {b.book_id.ljust(w_id)} | {title.ljust(w_title)} | {author.ljust(w_author)} | {genre.ljust(w_genre)} | {genre.ljust(w_pub)} | {str(b.quantity).rjust(w_qty)} |")
         
         print(separator)
         if i + PAGE_SIZE < total:
