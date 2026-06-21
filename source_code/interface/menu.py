@@ -235,14 +235,12 @@ def admin_manage_books(hash_map, dll, user_array, waiting_queue):
             sub_choice = input("👉 Chọn tiêu chí: ").strip()
             keyword = input("Nhập từ khóa: ").strip()
             
-            books_all = hash_map.get_all_books() # Giả sử bạn có hàm lấy tất cả
-            results = []
-            
-            if sub_choice == '1': results = [b for b in books_all if keyword.lower() in b.title.lower()]
-            elif sub_choice == '2': results = [b for b in books_all if keyword.lower() in b.author.lower()]
-            elif sub_choice == '3': results = [b for b in books_all if keyword.lower() in b.genre.lower()]
-            elif sub_choice == '4': results = [b for b in books_all if keyword.lower() in b.publisher.lower()]
-            
+            if sub_choice == '1': results = search.search_by_title(hash_map, keyword)
+            elif sub_choice == '2': results = search.search_by_author(hash_map, keyword)
+            elif sub_choice == '3': results = search.search_by_genre(hash_map, keyword)
+            elif sub_choice == '4': results = results = search.search_by_publisher(hash_map, keyword)
+            else: results = []
+
             display_books_paginated(results)
             pause()
 
