@@ -23,7 +23,7 @@ def get_data_paths():
     books_path = os.path.join(data_dir, "books.csv")
     users_path = os.path.join(data_dir, "users.csv")
     loans_path = os.path.join(data_dir, "loans.csv")
-    waiting_path = os.path.join(data_dir, "waiting_requests.csv") # [THÊM MỚI] File CSV hàng đợi
+    waiting_path = os.path.join(data_dir, "waiting_requests.csv")
     
     return books_path, users_path, loans_path, waiting_path
 
