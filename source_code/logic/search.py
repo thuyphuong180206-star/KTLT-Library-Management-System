@@ -7,6 +7,7 @@ Các hàm:
     - search_by_title(hash_map, keyword)      : Tìm tương đối theo tên sách, O(n). Trả về: CustomList[Book]
     - search_by_author(hash_map, keyword)     : Tìm tương đối theo tác giả, O(n). Trả về: CustomList[Book]
     - search_by_genre(hash_map, keyword)      : Tìm tương đối theo thể loại, O(n). Trả về: CustomList[Book]
+    - search_by_publisher(hash_map, keyword)  : Tìm tương đối theo nhà xuất bản, O(n). Trả về: CustomList[Book]
 Import bởi: logic.loan_manager, interface.menu
 """
 from structure.custom_list import CustomList
@@ -43,5 +44,15 @@ def search_by_genre(hash_map, keyword):
     keyword_lower = keyword.lower().strip()
     for book in hash_map.get_all_books():
         if keyword_lower in book.genre.lower():
+            result.append(book)
+    return result
+
+
+def search_by_publisher(hash_map, keyword):
+    """Tìm tương đối theo nhà xuất bản. O(n)."""
+    result = CustomList()
+    keyword_lower = keyword.lower().strip()
+    for book in hash_map.get_all_books():
+        if keyword_lower in book.publisher.lower():
             result.append(book)
     return result
