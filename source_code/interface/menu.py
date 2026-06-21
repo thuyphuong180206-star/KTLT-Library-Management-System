@@ -61,7 +61,7 @@ def display_books_paginated(books):
     total = len(books)
     w_id, w_title, w_author, w_genre, w_pub, w_qty = 8, 22, 15, 10, 15, 5
 
-    separator = f"+{'-'*(w_id+2)}+{'-'*(w_title+2)}+{'-'*(w_author+2)}+{'-'*(w_genre+2)}+{'-'*(w_qty+2)}+{'-'*(w_qty+2)}+"
+    separator = f"+{'-'*(w_id+2)}+{'-'*(w_title+2)}+{'-'*(w_author+2)}+{'-'*(w_genre+2)}+{'-'*(w_pub+2)}+{'-'*(w_qty+2)}+"
 
     for i in range(0, total, PAGE_SIZE):
         chunk = books[i:i + PAGE_SIZE]
